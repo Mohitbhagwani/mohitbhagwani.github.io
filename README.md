@@ -16,6 +16,10 @@ Open http://localhost:5173. Hot reload uses polling for macOS/Colima bind mounts
 docker compose down
 ```
 
+## Fly over Jaipur
+
+Choose **Launch kite**, steer with the left and right arrows or **A/D**, and change height with the up and down arrows or **W/S**. Tap **Space** for a short gust. Fly through colored wind rings to discover rooftops. On mobile, enable 3D for touch controls. Visitors can jump straight to the portfolio at any point.
+
 ## Use the atlas
 
 Choose **Enter the 3D journey** to open the full-screen scene. Click **Launch packet** beside the ingress gate to start. The camera follows each stage. Switch to **Free camera** to orbit the scene, or press Escape to return to the portfolio.

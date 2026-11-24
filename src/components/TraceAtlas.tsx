@@ -149,10 +149,10 @@ export default function TraceAtlas({
           <p className="trace-kicker">
             <span /> INTERACTIVE PORTFOLIO <i /> BACKEND ENGINEERING
           </p>
-          <h1 id="atlas-heading">
-            Beyond the
-            <br /> Backend<span>.</span>
-          </h1>
+          <h2 id="atlas-heading">
+            Transaction
+            <br /> atlas<span>.</span>
+          </h2>
           <p className="trace-intro-copy">
             I’m Mohit Bhagwani. I build payment systems and distributed
             services. Follow a fictional transaction to see the work behind a

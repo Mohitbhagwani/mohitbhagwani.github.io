@@ -6,7 +6,9 @@ test("portfolio navigation, overlays, focus and content", async ({
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto("/");
-  await expect(page.getByRole("heading", { level: 1 })).toContainText("Beyond");
+  await expect(page.getByRole("heading", { level: 1 })).toContainText(
+    "Kites over Jaipur",
+  );
   await page.locator("#work .case-link").first().click();
   await expect(page.getByRole("dialog")).toBeVisible();
   await expect(
@@ -20,7 +22,10 @@ test("portfolio navigation, overlays, focus and content", async ({
   ).toBeFocused();
   await page.keyboard.press("Escape");
   await expect(page.getByRole("dialog")).toHaveCount(0);
-  await page.getByRole("button", { name: "View résumé" }).click();
+  await page
+    .locator(".kite-hero")
+    .getByRole("button", { name: "View résumé" })
+    .click();
   await expect(
     page.getByText("Résumé download is not configured.", { exact: false }),
   ).toBeVisible();
@@ -124,7 +129,11 @@ test("reduced motion loads complete 2D mode without 3D bundle", async ({
   await page.emulateMedia({ reducedMotion: "reduce" });
   const worlds: string[] = [];
   page.on("request", (r) => {
-    if (/\/world\/TraceScene|\/assets\/TraceScene-/.test(r.url()))
+    if (
+      /\/world\/(TraceScene|KiteScene|WorkshopScene)|\/assets\/(TraceScene|KiteScene|WorkshopScene)-/.test(
+        r.url(),
+      )
+    )
       worlds.push(r.url());
   });
   await page.goto("/");
@@ -346,4 +355,45 @@ test("3D workshop responds to exhibits and movement", async ({
   await expect(
     stage.getByRole("button", { name: "Walk the workshop" }),
   ).toBeVisible();
+});
+
+test("Jaipur kite launches, catches a gust, and reveals the first rooftop", async ({
+  page,
+}, info) => {
+  const errors: string[] = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  page.on("console", (message) => {
+    if (message.type() === "error") errors.push(message.text());
+  });
+  await page.goto("/");
+  if (info.project.name === "mobile")
+    await page.getByRole("button", { name: "Enable 3D" }).click();
+  const hero = page.getByRole("region", {
+    name: "Beyond the Backend — Kites over Jaipur",
+  });
+  const launch = hero.getByRole("button", { name: "Launch kite" });
+  await expect(launch).toBeEnabled({ timeout: 30000 });
+  await page.screenshot({
+    path: `test-results/${info.project.name}-kite-launch.png`,
+  });
+  await launch.click();
+  await expect(hero.getByTestId("kite-distance")).not.toHaveText("0 m");
+  if (info.project.name === "mobile") {
+    await hero.getByRole("button", { name: "Kite gust" }).tap();
+    await expect(hero.getByText("Gust caught!")).toBeVisible();
+  } else {
+    await page.keyboard.down(" ");
+    await expect(hero.getByText("Gust caught!")).toBeVisible();
+    await page.keyboard.up(" ");
+  }
+  const found = hero.getByRole("complementary", { name: "Discovered rooftop" });
+  await expect(
+    found.getByRole("heading", { name: "The Workshop" }),
+  ).toBeVisible({ timeout: 21000 });
+  await page.screenshot({
+    path: `test-results/${info.project.name}-kite-flight.png`,
+  });
+  await found.getByRole("link", { name: "Explore rooftop" }).click();
+  await expect(page).toHaveURL(/#skills$/);
+  expect(errors).toEqual([]);
 });
