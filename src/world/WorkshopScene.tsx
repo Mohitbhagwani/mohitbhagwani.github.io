@@ -517,6 +517,23 @@ function WalkCamera({
   return null;
 }
 
+function OverviewCamera({
+  walking,
+  reset,
+}: {
+  walking: boolean;
+  reset: number;
+}) {
+  const { camera, invalidate } = useThree();
+  useEffect(() => {
+    if (walking) return;
+    camera.position.set(13.6, 12.5, 14.8);
+    camera.lookAt(0, 0, -2);
+    invalidate();
+  }, [camera, invalidate, reset, walking]);
+  return null;
+}
+
 function ContextWatch({ onError }: { onError: () => void }) {
   const { gl } = useThree();
   useEffect(() => {
@@ -535,6 +552,7 @@ export default function WorkshopScene({
   selected,
   onSelect,
   walking,
+  reset,
   input,
   onNearby,
   onError,
@@ -542,6 +560,7 @@ export default function WorkshopScene({
   selected: string;
   onSelect: (item: Exhibit) => void;
   walking: boolean;
+  reset: number;
   input: React.RefObject<Set<string>>;
   onNearby: (item: Exhibit | null) => void;
   onError: () => void;
@@ -599,6 +618,7 @@ export default function WorkshopScene({
           enableDamping={false}
         />
       )}
+      <OverviewCamera walking={walking} reset={reset} />
       <ContextWatch onError={onError} />
     </Canvas>
   );

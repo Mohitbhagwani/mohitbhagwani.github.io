@@ -52,7 +52,7 @@ export default function Workshop({
   onOpen: (id: string) => void;
 }) {
   const [selected, setSelected] = useState<Exhibit>(exhibits[0]);
-  const [visible, setVisible] = useState(false);
+  const [loaded, setLoaded] = useState(false);
   const [walking, setWalking] = useState(false);
   const [unavailable, setUnavailable] = useState(false);
   const [nearby, setNearby] = useState<Exhibit | null>(null);
@@ -81,8 +81,8 @@ export default function Workshop({
     if (!element) return;
     const observer = new IntersectionObserver(
       ([entry]) => {
-        setVisible(entry.isIntersecting);
-        if (!entry.isIntersecting) setWalking(false);
+        if (entry.isIntersecting) setLoaded(true);
+        else setWalking(false);
       },
       { rootMargin: "140px" },
     );
@@ -130,7 +130,7 @@ export default function Workshop({
           tabIndex={show3d ? 0 : undefined}
           aria-label="Skills workshop scene"
         >
-          {show3d && visible && (
+          {show3d && loaded && (
             <WorkshopBoundary onError={onError}>
               <Suspense
                 fallback={
@@ -140,7 +140,7 @@ export default function Workshop({
                 }
               >
                 <Scene
-                  key={reset}
+                  reset={reset}
                   selected={selected.id}
                   onSelect={inspect}
                   walking={canWalk}
