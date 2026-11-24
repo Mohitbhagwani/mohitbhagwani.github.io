@@ -1,6 +1,13 @@
-export type TraceScenario = "success" | "failure" | "duplicate";
+export type TraceScenario = "success" | "failure" | "duplicate" | "refund";
 export type TraceNodeId =
-  "ingress" | "vault" | "core" | "provider" | "relay" | "ledger";
+  | "ingress"
+  | "vault"
+  | "core"
+  | "provider"
+  | "relay"
+  | "ledger"
+  | "refund"
+  | "audit";
 
 export const traceNodes = [
   {
@@ -61,6 +68,25 @@ export const traceNodes = [
     color: "#f0b28b",
     detail: "Commit the final state and preserve the trace for debugging.",
     view: "case/reliability",
+  },
+  {
+    id: "refund",
+    label: "Refund dispatch",
+    short: "REFUND",
+    position: [-7, 0, -2.6],
+    color: "#eca878",
+    detail: "Submit an eligible refund against its original captured payment.",
+    view: "case/orchestration",
+  },
+  {
+    id: "audit",
+    label: "Audit and tracing",
+    short: "AUDIT",
+    position: [-2.5, 0, -2.6],
+    color: "#e3cb83",
+    detail:
+      "Correlate the original payment, refund request, and provider result before reconciliation.",
+    view: "case/developer-tooling",
   },
 ] satisfies {
   id: TraceNodeId;
@@ -150,6 +176,43 @@ export const traceRoutes: Record<TraceScenario, Step[]> = {
       state: "REUSED",
       message:
         "The fingerprint matches. Returned the stored result without a second provider call.",
+    },
+  ],
+  refund: [
+    {
+      node: "ingress",
+      state: "REFUND REQUESTED",
+      message:
+        "Read the original captured payment and requested refund amount.",
+    },
+    {
+      node: "vault",
+      state: "ACCEPTED",
+      message:
+        "Stored a new refund idempotency key, separate from the capture.",
+    },
+    {
+      node: "core",
+      state: "ELIGIBLE",
+      message:
+        "Confirmed that the fictional capture has enough refundable balance.",
+    },
+    {
+      node: "refund",
+      state: "REFUND PENDING",
+      message: "Submitted the refund against the original provider reference.",
+    },
+    {
+      node: "audit",
+      state: "CONFIRMED",
+      message:
+        "Matched the simulated provider update to both payment and refund.",
+    },
+    {
+      node: "ledger",
+      state: "REFUNDED",
+      message:
+        "Recorded the refund separately and updated the remaining refundable balance.",
     },
   ],
 };

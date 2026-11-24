@@ -15,6 +15,9 @@ const pathPairs: [TraceNodeId, TraceNodeId][] = [
   ["provider", "relay"],
   ["relay", "ledger"],
   ["provider", "ledger"],
+  ["core", "refund"],
+  ["refund", "audit"],
+  ["audit", "ledger"],
 ];
 const linkPositions = Object.fromEntries(
   traceNodes.map((node) => [node.id, node.position]),
@@ -249,6 +252,69 @@ function Module({ id, color }: { id: TraceNodeId; color: string }) {
           <Block at={[0, 1.07, 0.02]} size={[0.86, 0.08, 0.13]} color={color} />
         </>
       );
+    case "refund":
+      return (
+        <>
+          <Block
+            at={[0, 0.32, 0]}
+            size={[2.28, 0.29, 1.74]}
+            color="#754c46"
+            rounded
+          />
+          {[-0.74, 0.74].map((x) => (
+            <Block
+              key={x}
+              at={[x, 0.7, 0]}
+              size={[0.28, 0.52, 1.6]}
+              color={copper}
+              rounded
+            />
+          ))}
+          <mesh position={[0, 0.79, 0]} rotation={[Math.PI / 2, 0, 0]}>
+            <torusGeometry args={[0.52, 0.12, 12, 32, Math.PI * 1.68]} />
+            <meshStandardMaterial
+              color={color}
+              metalness={0.55}
+              roughness={0.3}
+            />
+          </mesh>
+          <mesh position={[0.31, 0.76, -0.37]} rotation={[0, 0, -Math.PI / 2]}>
+            <coneGeometry args={[0.19, 0.35, 5]} />
+            <meshStandardMaterial color="#ffd1a0" />
+          </mesh>
+          <Signal at={[0, 0.5, 0.65]} color={color} />
+        </>
+      );
+    case "audit":
+      return (
+        <>
+          <Block
+            at={[0, 0.32, 0]}
+            size={[2.2, 0.28, 1.65]}
+            color="#43566a"
+            rounded
+          />
+          <Block
+            at={[0, 0.69, -0.42]}
+            size={[1.8, 0.72, 0.55]}
+            color="#536c7b"
+            rounded
+          />
+          {Array.from({ length: 6 }, (_, i) => {
+            const height = [0.22, 0.45, 0.31, 0.59, 0.43, 0.68][i];
+            return (
+              <Block
+                key={i}
+                at={[-0.69 + i * 0.275, 0.46 + height / 2, 0.12]}
+                size={[0.15, height, 0.18]}
+                color={i % 2 ? color : "#7fc6b8"}
+                rounded
+              />
+            );
+          })}
+          <Block at={[0, 0.51, 0.61]} size={[1.82, 0.09, 0.15]} color={color} />
+        </>
+      );
     case "ledger":
       return (
         <>
@@ -447,20 +513,6 @@ function Board() {
             </mesh>
           ))}
         </group>
-      ))}
-      <Block
-        at={[-5.15, 0.03, -2.62]}
-        size={[4.2, 0.11, 2.67]}
-        color="#253647"
-        rounded
-      />
-      {Array.from({ length: 9 }, (_, i) => (
-        <Block
-          key={i}
-          at={[-6.67 + i * 0.38, 0.13, -2.62]}
-          size={[0.12, 0.07, 1.5]}
-          color={i % 3 === 0 ? copper : "#617483"}
-        />
       ))}
     </>
   );

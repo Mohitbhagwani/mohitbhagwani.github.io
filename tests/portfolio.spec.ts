@@ -25,6 +25,9 @@ test("portfolio navigation, overlays, focus and content", async ({
     page.getByText("Résumé download is not configured.", { exact: false }),
   ).toBeVisible();
   await page.getByRole("button", { name: "Close dialog" }).click();
+  await expect(page.locator("#experience")).toContainText("Synoriq");
+  await expect(page.locator("#experience")).not.toContainText(/Bluetris/i);
+  await expect(page.locator("#work .case-link")).toHaveCount(10);
   await page.locator("#contact").scrollIntoViewIfNeeded();
   await expect(
     page.getByRole("link", { name: "GitHub", exact: true }),
@@ -145,7 +148,7 @@ test("WebGL failure gracefully provides the full portfolio", async ({
     "Production implementation has not been confirmed",
   );
 });
-test("transaction atlas follows approved, failed and duplicate routes", async ({
+test("transaction atlas follows approval, rejection, duplicate and refund routes", async ({
   page,
 }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
@@ -183,6 +186,19 @@ test("transaction atlas follows approved, failed and duplicate routes", async ({
     .click();
   await page.getByRole("button", { name: "Run trace" }).click();
   await expect(state).toHaveText("REUSED");
+  await expect(next).toBeDisabled();
+  await page.getByRole("button", { name: "Refund", exact: true }).click();
+  for (const status of [
+    "REFUND REQUESTED",
+    "ACCEPTED",
+    "ELIGIBLE",
+    "REFUND PENDING",
+    "CONFIRMED",
+    "REFUNDED",
+  ]) {
+    await next.click();
+    await expect(state).toHaveText(status);
+  }
   await expect(next).toBeDisabled();
   await page.getByRole("button", { name: "Transaction record" }).click();
   await expect(
@@ -236,19 +252,17 @@ test("immersive journey launches from the 3D packet and exits cleanly", async ({
   });
   await expect(journey).toBeVisible();
   await expect(journey.locator("canvas")).toBeVisible();
-  await journey
-    .getByRole("button", { name: "Duplicate request", exact: true })
-    .click();
+  await journey.getByRole("button", { name: "Refund", exact: true }).click();
   await journey.getByRole("button", { name: "Launch packet" }).click();
-  await expect(journey.getByText("REUSED", { exact: true })).toBeVisible();
+  await expect(journey.getByText("REFUNDED", { exact: true })).toBeVisible();
   await journey.getByRole("button", { name: "Free camera" }).click();
   await expect(
     journey.getByRole("button", { name: "Follow packet" }),
   ).toBeVisible();
   await page.screenshot({
-    path: `test-results/${info.project.name}-journey.png`,
+    path: `test-results/${info.project.name}-refund-journey.png`,
   });
   await page.keyboard.press("Escape");
   await expect(journey).toHaveCount(0);
-  await expect(page.getByTestId("trace-state")).toHaveText("REUSED");
+  await expect(page.getByTestId("trace-state")).toHaveText("REFUNDED");
 });

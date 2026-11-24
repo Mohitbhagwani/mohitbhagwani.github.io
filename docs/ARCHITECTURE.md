@@ -6,7 +6,7 @@ Case studies use hashes on the root document so direct links survive a refresh o
 
 ## Transaction atlas
 
-Visitors trace a fictional payment through six modules. The success path includes a provider callback and reconciliation. A provider rejection follows a distinct branch into the transaction record. A duplicate short-circuits at the idempotency boundary. Manual advancement and automatic playback share the same ordered steps.
+Visitors trace a fictional payment through eight modules. The success path includes a provider callback and reconciliation. A provider rejection follows a distinct branch into the transaction record. A duplicate short-circuits at the idempotency boundary. A refund leaves the forward payment path for a separate dispatch and audit branch. Manual advancement and automatic playback share the same ordered steps.
 
 React Three Fiber renders the circuit board, low-poly module models, and visual packet. The trace controller owns the semantic state so the console and 2D fallback remain functional independently of WebGL. The scene loads separately, renders on demand, and requests frames when a packet travels or the camera changes. The 2D cards and world labels both select the same inspector state. The 2D portfolio defaults on small screens and with reduced motion.
 

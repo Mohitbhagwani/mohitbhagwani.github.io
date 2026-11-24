@@ -28,7 +28,7 @@ export const districts = [
     color: "#98b9b0",
     position: [4, 0, -7] as [number, number, number],
     arrival: [4, -2.6] as const,
-    cases: ["modernization", "reliability"],
+    cases: ["modernization", "reliability", "developer-tooling"],
     icon: "⌘",
   },
   {
@@ -83,23 +83,23 @@ export const experience = [
     period: "May 2025 — Present",
     description: "Building the systems behind global payments.",
     details:
-      "Payment processor and digital wallet integrations, orchestration, authentication workflows, webhooks, status synchronization, and enterprise application modernization.",
+      "Led the Java 21 and Spring Boot 3.4 migration, built configuration-driven payment transformations, and integrated pay-ins, payouts, refunds, and webhooks. Built developer tools for semantic code search and payment log tracing using MCP, LanceDB, Ollama, and Grafana Loki.",
   },
   {
     company: "FiftyFive Technologies",
-    role: "Software Engineer",
+    role: "Software Engineer, Team Lead",
     period: "May 2023 — May 2025",
     description: "Enterprise software. Shared ownership.",
     details:
-      "Java and Spring Boot microservices, event-driven architecture, APIs, authentication, and database integration. Led four engineers, coordinated releases, and reviewed code. Received a Performance Excellence award for contributions to an audit release.",
+      "Led and mentored four engineers during a healthcare platform migration to Spring Boot microservices on Kubernetes. Worked on Keycloak and OIDC, audit trails, event-driven workflows, and distributed purchase transactions. Received a Performance Excellence award for contributions to an audit release.",
   },
   {
-    company: "Bluetris Technologies",
-    role: "Software Developer 1 High",
-    period: "Jan 2023 — Apr 2023",
-    description: "A foundation in backend engineering.",
+    company: "Synoriq",
+    role: "Software Engineer",
+    period: "Jan 2022 — Apr 2023",
+    description: "Backend engineering for lending.",
     details:
-      "Backend development with Java, REST APIs, and database integration.",
+      "Built Spring Boot APIs for loan origination, servicing, and modification. Integrated credit-scoring and payment services through adapters with retries and fallbacks, and worked with Elasticsearch, Jenkins, and Docker.",
   },
 ];
 export const skills = {
@@ -111,7 +111,8 @@ export const skills = {
     "Hibernate",
     "Spring AOP",
     "SQL",
-    "Go (exposure)",
+    "Go (production exposure)",
+    "Python",
   ],
   "APIs & identity": [
     "REST",
@@ -131,6 +132,14 @@ export const skills = {
     "Apache Kafka",
     "RabbitMQ",
   ],
+  "Developer tooling & search": [
+    "Model Context Protocol (MCP)",
+    "LanceDB",
+    "Ollama",
+    "Semantic search",
+    "Grafana Loki / LogQL",
+    "Elasticsearch",
+  ],
   "Systems & delivery": [
     "Distributed systems",
     "Microservices",
@@ -144,6 +153,10 @@ export const skills = {
     "Azure",
     "Git",
     "CI/CD",
+    "Kubernetes / GKE",
+    "Jenkins",
+    "GitLab CI/CD",
+    "Canary releases",
     "Spring Actuator",
   ],
 };
@@ -464,5 +477,72 @@ export const caseStudies: CaseStudy[] = [
       "Engineering leadership means making the team more effective, not just writing more code.",
     outcome:
       "Team leadership and a Performance Excellence award for audit-release contributions were supplied by Mohit.",
+  },
+  {
+    id: "developer-tooling",
+    number: "09",
+    title: "Find the code behind a payment failure.",
+    category: "DEVELOPER TOOLING & SEMANTIC SEARCH",
+    summary:
+      "Code and configuration discovery with local embeddings, alongside tools for tracing payment failures.",
+    tags: ["MCP", "LanceDB", "Ollama", "Grafana Loki"],
+    problem:
+      "Integration behavior is spread across Java code and provider configuration. During an incident, engineers also need to find the relevant events.",
+    challenge:
+      "Search must handle domain language that differs from identifiers in the code. Log investigation needs transaction context and narrow filters.",
+    contribution:
+      "Built Code Knowledge MCP for semantic search across payment code and provider configuration, and Loki Logs MCP for investigating payment failures.",
+    architecture: [
+      "Code and configuration",
+      "Local Ollama embeddings",
+      "LanceDB index",
+      "MCP search tool",
+      "Source references",
+    ],
+    choices:
+      "Local embeddings and a vector index supported semantic retrieval. Grafana Loki and LogQL supported a separate log investigation workflow.",
+    tradeoffs:
+      "Semantic retrieval can surface relevant context when exact keywords differ, but results depend on the indexed content and must be checked against the source.",
+    implementation:
+      "Index code and configuration for retrieval. Expose search through MCP and use scoped log queries to connect investigation context with matching events.",
+    reliability:
+      "Keep source references visible, distinguish retrieved evidence from generated explanations, and avoid exposing credentials or sensitive log data.",
+    lesson:
+      "Developer tooling is most useful when an engineer can verify the answer in the source or the event trace.",
+    outcome:
+      "The tooling is described in the supplied résumé. This portfolio does not expose employer code, provider configurations, or production logs.",
+  },
+  {
+    id: "lending",
+    number: "10",
+    title: "From loan application to servicing.",
+    category: "LENDING PLATFORM ENGINEERING",
+    summary: "Spring Boot APIs and adapters for credit-scoring and payments.",
+    tags: ["Lending", "Spring Boot", "Adapter pattern", "Elasticsearch"],
+    problem:
+      "A loan management system has to support origination, servicing, and modifications while relying on separate scoring and payment services.",
+    challenge:
+      "External services have independent availability and response formats. Their failures should remain distinguishable from lending decisions.",
+    contribution:
+      "At Synoriq, developed APIs across the three loan lifecycle areas and integrated credit-scoring and payment services with retry and fallback behavior.",
+    architecture: [
+      "Loan lifecycle API",
+      "Lending service",
+      "Integration adapters",
+      "Credit scoring / payments",
+      "Operational search",
+    ],
+    choices:
+      "Spring Boot REST APIs exposed the lifecycle modules. Adapters isolated external service contracts. Elasticsearch supported search and analytics.",
+    tradeoffs:
+      "Retries can recover temporary failures, but repeating an external operation can be unsafe when its original outcome is unknown.",
+    implementation:
+      "Separate lifecycle behavior from external integrations and cover the API and adapter paths with unit and integration tests in CI.",
+    reliability:
+      "Treat an unavailable integration as a technical outcome. Apply retries only where safe and preserve the original attempt for investigation.",
+    lesson:
+      "The reliability of a lending workflow depends as much on its integration boundaries as on its happy path.",
+    outcome:
+      "Engineering scope is based on the supplied résumé. No transaction data or performance figures are included.",
   },
 ];

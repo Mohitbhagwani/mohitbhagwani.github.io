@@ -32,6 +32,7 @@ const scenarios = [
   { id: "success", label: "Approved" },
   { id: "failure", label: "Provider failure" },
   { id: "duplicate", label: "Duplicate request" },
+  { id: "refund", label: "Refund" },
 ] as const;
 
 class SceneBoundary extends Component<
@@ -273,6 +274,17 @@ export default function TraceAtlas({
               {current?.message ??
                 "Select a route, then click the packet at the ingress gate."}
             </p>
+            {selected && (
+              <button
+                className="theater-case-link"
+                onClick={() => {
+                  closeTheater();
+                  onOpen(focus.view);
+                }}
+              >
+                {focus.label} <ArrowUpRight size={14} />
+              </button>
+            )}
           </aside>
           <div className="theater-controls">
             <div

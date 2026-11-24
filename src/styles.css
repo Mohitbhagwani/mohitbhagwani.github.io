@@ -2124,3 +2124,16 @@ input[type="radio"] {
     padding: 8px;
   }
 }
+
+.theater-case-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 9px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--atlas-accent);
+  text-align: left;
+  font-size: 12px;
+}
