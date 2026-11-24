@@ -5,6 +5,7 @@ import {
   useCallback,
   useEffect,
   useState,
+  useRef,
   type ReactNode,
 } from "react";
 import {
@@ -15,6 +16,9 @@ import {
   Play,
   RotateCcw,
   SkipForward,
+  Maximize,
+  X,
+  Compass,
 } from "lucide-react";
 import {
   traceNodes,
@@ -60,6 +64,9 @@ export default function TraceAtlas({
   const [selected, setSelected] = useState<TraceNodeId | null>(null);
   const [ready, setReady] = useState(false);
   const [failedScene, setFailedScene] = useState(false);
+  const [immersive, setImmersive] = useState(false);
+  const [follow, setFollow] = useState(true);
+  const theater = useRef<HTMLDialogElement>(null);
   const route = traceRoutes[scenario];
   const current = route[cursor];
   const previous = route[cursor - 1];
@@ -70,7 +77,18 @@ export default function TraceAtlas({
   const failed = current?.state === "REJECTED" || current?.state === "FAILED";
 
   const onReady = useCallback(() => setReady(true), []);
-  const onError = useCallback(() => setFailedScene(true), []);
+  const onError = useCallback(() => {
+    setFailedScene(true);
+    setImmersive(false);
+  }, []);
+  useEffect(() => {
+    if (!immersive || !theater.current) return;
+    const dialog = theater.current;
+    dialog.showModal();
+    return () => {
+      if (dialog.open) dialog.close();
+    };
+  }, [immersive]);
   const advance = useCallback(() => {
     if (cursor >= route.length - 1) {
       setRunning(false);
@@ -107,6 +125,22 @@ export default function TraceAtlas({
     setRunning(true);
   }
   const hasScene = !plain && !failedScene;
+  const inTheater = immersive && hasScene;
+  const scene = {
+    active: previous?.node ?? null,
+    next: current?.node ?? null,
+    revision,
+    visited: route.slice(0, cursor + 1).map((step) => step.node),
+    failed,
+    selected,
+    onSelect: setSelected,
+    onReady,
+    onError,
+  };
+  function closeTheater() {
+    setImmersive(false);
+    setRunning(false);
+  }
   return (
     <section className="trace-hero" aria-labelledby="atlas-heading">
       <div className="trace-mast">
@@ -124,9 +158,21 @@ export default function TraceAtlas({
             single request.
           </p>
           <div className="trace-intro-actions">
-            <a href="#trace-console">
-              Try the trace <ArrowRight size={16} />
-            </a>
+            {hasScene ? (
+              <button
+                className="trace-enter"
+                onClick={() => {
+                  setFollow(true);
+                  setImmersive(true);
+                }}
+              >
+                Enter the 3D journey <Maximize size={16} />
+              </button>
+            ) : (
+              <a href="#trace-console">
+                Try the trace <ArrowRight size={16} />
+              </a>
+            )}
             <button onClick={() => onOpen("resume")}>
               View résumé <ArrowUpRight size={15} />
             </button>
@@ -145,17 +191,7 @@ export default function TraceAtlas({
           {hasScene ? (
             <SceneBoundary onError={onError}>
               <Suspense fallback={null}>
-                <Scene
-                  active={previous?.node ?? null}
-                  next={current?.node ?? null}
-                  revision={revision}
-                  visited={route.slice(0, cursor + 1).map((step) => step.node)}
-                  failed={failed}
-                  selected={selected}
-                  onSelect={(node) => setSelected(node)}
-                  onReady={onReady}
-                  onError={onError}
-                />
+                {!inTheater && <Scene {...scene} />}
               </Suspense>
               {!ready && (
                 <div className="trace-loading" role="status">
@@ -193,6 +229,94 @@ export default function TraceAtlas({
           </div>
         </div>
       </div>
+      {inTheater && (
+        <dialog
+          ref={theater}
+          className="trace-theater"
+          aria-label="Immersive transaction journey"
+          onCancel={(event) => {
+            event.preventDefault();
+            closeTheater();
+          }}
+        >
+          <div className="theater-canvas">
+            <SceneBoundary onError={onError}>
+              <Suspense
+                fallback={
+                  <p className="trace-loading">Loading the 3D journey…</p>
+                }
+              >
+                <Scene
+                  {...scene}
+                  immersive
+                  track={follow}
+                  onLaunch={cursor < 0 ? toggle : undefined}
+                />
+              </Suspense>
+            </SceneBoundary>
+          </div>
+          <header className="theater-top">
+            <div>
+              <span>BEYOND THE BACKEND</span>
+              <h2>Transaction journey</h2>
+            </div>
+            <button autoFocus onClick={closeTheater}>
+              <X size={17} /> <span>Exit 3D</span>
+            </button>
+          </header>
+          <aside className="theater-event" aria-live="polite">
+            <span>
+              EVENT {Math.max(0, cursor + 1)} OF {route.length}
+            </span>
+            <strong>{current?.state ?? "READY"}</strong>
+            <p>
+              {current?.message ??
+                "Select a route, then click the packet at the ingress gate."}
+            </p>
+          </aside>
+          <div className="theater-controls">
+            <div
+              className="trace-scenarios"
+              role="group"
+              aria-label="3D trace scenario"
+            >
+              {scenarios.map((item) => (
+                <button
+                  key={item.id}
+                  aria-pressed={scenario === item.id}
+                  onClick={() => reset(item.id)}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+            <div className="trace-buttons">
+              <button className="trace-run" onClick={toggle}>
+                {running ? <CirclePause size={16} /> : <Play size={16} />}{" "}
+                {running
+                  ? "Pause trace"
+                  : finished
+                    ? "Replay trace"
+                    : "Run trace"}
+              </button>
+              <button
+                aria-label="Advance one event"
+                title="Advance one event"
+                disabled={finished}
+                onClick={() => {
+                  setRunning(false);
+                  advance();
+                }}
+              >
+                <SkipForward size={17} />
+              </button>
+              <button aria-pressed={follow} onClick={() => setFollow(!follow)}>
+                <Compass size={16} /> {follow ? "Free camera" : "Follow packet"}
+              </button>
+            </div>
+          </div>
+        </dialog>
+      )}
       <div className="trace-console" id="trace-console">
         <div className="trace-control">
           <p className="trace-panel-label">01 / RUN A TRANSACTION</p>

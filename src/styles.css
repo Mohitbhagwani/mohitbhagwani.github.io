@@ -1999,3 +1999,128 @@ input[type="radio"] {
     padding: 5px;
   }
 }
+
+.trace-intro-actions .trace-enter {
+  background: var(--atlas-accent);
+  border-color: var(--atlas-accent);
+  color: #17212a;
+  font-weight: 750;
+}
+.trace-theater {
+  position: fixed;
+  inset: 0;
+  box-sizing: border-box;
+  margin: 0;
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  max-height: none;
+  padding: 0;
+  overflow: hidden;
+  background: #111c29;
+  border: none;
+  color: var(--atlas-paper);
+}
+.trace-theater::backdrop {
+  background: #111c29;
+}
+.theater-canvas {
+  position: absolute;
+  inset: 0;
+}
+.theater-top,
+.theater-event,
+.theater-controls {
+  position: absolute;
+  z-index: 9;
+  border: 1px solid #adc9d344;
+  background: #142332e8;
+  border-radius: 7px;
+}
+.theater-top {
+  top: max(18px, env(safe-area-inset-top));
+  left: max(18px, 4vw);
+  right: max(18px, 4vw);
+  padding: 12px 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.theater-top span,
+.theater-event > span {
+  color: #adbfca;
+  font:
+    10px ui-monospace,
+    monospace;
+  letter-spacing: 0.1em;
+}
+.theater-top h2 {
+  font-size: clamp(19px, 2.2vw, 31px);
+}
+.theater-top button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #f3eee3;
+  border: 1px solid #adc9d355;
+  border-radius: 4px;
+  padding: 7px 9px;
+  background: transparent;
+}
+.theater-event {
+  left: max(18px, 4vw);
+  bottom: 36px;
+  padding: 14px 17px;
+  width: min(29vw, 350px);
+}
+.theater-event strong {
+  display: block;
+  color: #9de9d6;
+  font:
+    650 25px "Space Grotesk",
+    sans-serif;
+  margin: 5px 0;
+}
+.theater-event p {
+  font-size: 12px;
+  line-height: 1.45;
+  color: #d1dde0;
+}
+.theater-controls {
+  right: max(18px, 4vw);
+  bottom: 36px;
+  padding: 13px;
+}
+.theater-launch {
+  white-space: nowrap;
+  padding: 9px 11px;
+  background: #a2dfd3;
+  color: #152431;
+  border: 1px solid #def5eb;
+  border-radius: 5px;
+  font-weight: 800;
+  font-size: 12px;
+}
+@media (max-width: 670px) {
+  .theater-top {
+    padding: 9px;
+  }
+  .theater-event,
+  .theater-controls {
+    left: 12px;
+    right: 12px;
+    width: auto;
+  }
+  .theater-event {
+    bottom: calc(107px + env(safe-area-inset-bottom));
+    padding: 8px 10px;
+  }
+  .theater-event strong {
+    font-size: 17px;
+    margin-block: 3px;
+  }
+  .theater-controls {
+    bottom: max(12px, env(safe-area-inset-bottom));
+    padding: 8px;
+  }
+}

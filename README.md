@@ -18,6 +18,8 @@ docker compose down
 
 ## Use the atlas
 
+Choose **Enter the 3D journey** to open the full-screen scene. Click **Launch packet** beside the ingress gate to start. The camera follows each stage. Switch to **Free camera** to orbit the scene, or press Escape to return to the portfolio.
+
 - Choose **Approved**, **Provider failure**, or **Duplicate request** and run the trace. Use the step button to advance one event at a time.
 - In 3D, drag the board to rotate it, pinch or scroll to zoom, and select a module to see its job in the system.
 - The system inspector links each stage to related engineering work. All case studies, experience, and contact details are available from the portfolio below.

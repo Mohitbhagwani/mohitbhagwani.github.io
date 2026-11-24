@@ -222,3 +222,33 @@ test("3D atlas renders and its modules open the system inspector", async ({
   await page.getByRole("button", { name: "2D portfolio" }).click();
   await expect(stage).toHaveCount(0);
 });
+
+test("immersive journey launches from the 3D packet and exits cleanly", async ({
+  page,
+}, info) => {
+  await page.goto("/");
+  if (info.project.name === "mobile") {
+    await page.getByRole("button", { name: "Enable 3D" }).click();
+  }
+  await page.getByRole("button", { name: "Enter the 3D journey" }).click();
+  const journey = page.getByRole("dialog", {
+    name: "Immersive transaction journey",
+  });
+  await expect(journey).toBeVisible();
+  await expect(journey.locator("canvas")).toBeVisible();
+  await journey
+    .getByRole("button", { name: "Duplicate request", exact: true })
+    .click();
+  await journey.getByRole("button", { name: "Launch packet" }).click();
+  await expect(journey.getByText("REUSED", { exact: true })).toBeVisible();
+  await journey.getByRole("button", { name: "Free camera" }).click();
+  await expect(
+    journey.getByRole("button", { name: "Follow packet" }),
+  ).toBeVisible();
+  await page.screenshot({
+    path: `test-results/${info.project.name}-journey.png`,
+  });
+  await page.keyboard.press("Escape");
+  await expect(journey).toHaveCount(0);
+  await expect(page.getByTestId("trace-state")).toHaveText("REUSED");
+});

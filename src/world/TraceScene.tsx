@@ -493,6 +493,131 @@ function SceneReady({
   }, [camera, gl, onReady, onError]);
   return null;
 }
+function JourneyCamera({ node }: { node: TraceNodeId | null }) {
+  const { camera, invalidate, size } = useThree();
+  const look = useRef(new THREE.Vector3());
+  const destination = useRef(new THREE.Vector3());
+  const target = useRef(new THREE.Vector3());
+  const zoom = useRef(30);
+  useEffect(() => {
+    if (node) {
+      const [x, , z] = linkPositions[node];
+      destination.current.set(x + 7.1, 6.1, z + 10.5);
+      target.current.set(x, 0.75, z);
+      zoom.current = THREE.MathUtils.clamp(size.width / 14, 22, 87);
+    } else {
+      destination.current.set(9, 14, 22);
+      target.current.set(0, 0, 0);
+      zoom.current = THREE.MathUtils.clamp(size.width / 26, 12, 66);
+    }
+    invalidate();
+  }, [node, size.width, invalidate]);
+  useFrame((_, delta) => {
+    if (!(camera instanceof THREE.OrthographicCamera)) return;
+    const t = 1 - Math.exp(-Math.min(delta || 1 / 60, 0.055) * 4.4);
+    camera.position.lerp(destination.current, t);
+    look.current.lerp(target.current, t);
+    camera.lookAt(look.current);
+    camera.zoom = THREE.MathUtils.lerp(camera.zoom, zoom.current, t);
+    camera.updateProjectionMatrix();
+    if (
+      camera.position.distanceToSquared(destination.current) > 0.0004 ||
+      look.current.distanceToSquared(target.current) > 0.0004 ||
+      Math.abs(camera.zoom - zoom.current) > 0.03
+    )
+      invalidate();
+  });
+  return null;
+}
+
+function LaunchPacket({ onLaunch }: { onLaunch: () => void }) {
+  return (
+    <group position={[-7, 2.2, 2.4]}>
+      <mesh
+        rotation={[0.14, 0.45, 0.12]}
+        onClick={(event) => {
+          event.stopPropagation();
+          onLaunch();
+        }}
+      >
+        <octahedronGeometry args={[0.44]} />
+        <meshStandardMaterial
+          color="#b2fff0"
+          emissive="#78edcb"
+          emissiveIntensity={1.6}
+          roughness={0.22}
+        />
+      </mesh>
+      <mesh rotation={[-Math.PI / 2, 0, 0]}>
+        <ringGeometry args={[0.55, 0.58, 36]} />
+        <meshBasicMaterial color="#85f4d7" side={THREE.DoubleSide} />
+      </mesh>
+      <Html center position={[0, 0.72, 0]} zIndexRange={[7, 1]}>
+        <button className="theater-launch" onClick={onLaunch}>
+          Launch packet ↗
+        </button>
+      </Html>
+    </group>
+  );
+}
+
+function SignalHall() {
+  return (
+    <group>
+      {[-1, 1].map((side) => (
+        <group key={side}>
+          <Block
+            at={[side * 12, -0.24, -0.8]}
+            size={[0.45, 0.5, 19]}
+            color="#35465a"
+            rounded
+          />
+          <Block
+            at={[side * 12, 0.033, -0.8]}
+            size={[0.07, 0.03, 18.7]}
+            color="#537c86"
+          />
+          {[-9, -4, 2, 7].map((z) => (
+            <group key={z}>
+              <Block
+                at={[side * 12, 1.75, z]}
+                size={[0.22, 3.9, 0.23]}
+                color="#34475b"
+              />
+              <Block
+                at={[side * 12, 3.65, z]}
+                size={[0.62, 0.14, 0.37]}
+                color="#7595a0"
+              />
+              <Signal at={[side * 12, 3.75, z]} size={0.19} color="#91ead4" />
+            </group>
+          ))}
+        </group>
+      ))}
+      {[-7.4, -3.7, 0, 3.7, 7.4].map((x) => (
+        <group key={x} position={[x, 0, -7.8]}>
+          <Block
+            at={[0, 0.67, 0]}
+            size={[2.13, 2.45, 0.98]}
+            color="#26394b"
+            rounded
+          />
+          <Block at={[0, 1.93, 0]} size={[2.21, 0.14, 1.04]} color="#466274" />
+          {Array.from({ length: 6 }, (_, index) => (
+            <Block
+              key={index}
+              at={[0, -0.25 + index * 0.33, 0.518]}
+              size={[1.69, 0.097, 0.076]}
+              color="#607886"
+            />
+          ))}
+        </group>
+      ))}
+      <Block at={[0, 3.8, -8.1]} size={[23.5, 0.24, 0.35]} color="#415c70" />
+    </group>
+  );
+}
+
 export default function TraceScene({
   active,
   next,
@@ -503,6 +628,9 @@ export default function TraceScene({
   onSelect,
   onReady,
   onError,
+  immersive = false,
+  track = false,
+  onLaunch,
 }: {
   active: TraceNodeId | null;
   next: TraceNodeId | null;
@@ -513,6 +641,9 @@ export default function TraceScene({
   onSelect: (node: TraceNodeId) => void;
   onReady: () => void;
   onError: () => void;
+  immersive?: boolean;
+  track?: boolean;
+  onLaunch?: () => void;
 }) {
   return (
     <Canvas
@@ -542,6 +673,9 @@ export default function TraceScene({
       />
       <directionalLight position={[9, 4, -7]} color="#89c5eb" intensity={0.8} />
       <Board />
+      {immersive && <SignalHall />}
+      {onLaunch && <LaunchPacket onLaunch={onLaunch} />}
+      {immersive && track && <JourneyCamera node={next} />}
       <TraceLinks from={active} to={next} failed={failed} visited={visited} />
       {traceNodes.map((node, index) => (
         <group key={node.id} position={node.position}>
@@ -575,16 +709,18 @@ export default function TraceScene({
         </group>
       ))}
       <Packet from={active} to={next} revision={revision} failed={failed} />
-      <OrbitControls
-        makeDefault
-        target={[0, 0, 0]}
-        minZoom={9}
-        maxZoom={74}
-        enablePan={false}
-        minPolarAngle={0.38}
-        maxPolarAngle={1.18}
-        enableDamping={false}
-      />
+      {!(immersive && track) && (
+        <OrbitControls
+          makeDefault
+          target={[0, 0, 0]}
+          minZoom={9}
+          maxZoom={74}
+          enablePan={false}
+          minPolarAngle={0.38}
+          maxPolarAngle={1.18}
+          enableDamping={false}
+        />
+      )}
       <SceneReady onReady={onReady} onError={onError} />
     </Canvas>
   );
