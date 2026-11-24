@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs><pattern id="grid" width="21" height="21" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r="1.2" fill="#547282"/></pattern></defs>
+  <rect width="1200" height="630" fill="#101a27"/>
+  <rect x="658" y="65" width="488" height="500" rx="14" fill="#182636" stroke="#526c7e"/>
+  <rect x="675" y="87" width="453" height="450" rx="8" fill="url(#grid)" opacity=".6"/>
+  <g fill="none" stroke-width="5" stroke-linecap="round">
+    <path d="M717 343H991V199H881M991 343L881 199" stroke="#84b9bc"/>
+    <path d="M717 343H991V199H881" stroke="#a7e5d9" stroke-dasharray="8 13"/>
+  </g>
+  <g fill="#324e62" stroke="#84a2ad" stroke-width="2">
+    <rect x="699" y="320" width="67" height="46" rx="6"/><rect x="789" y="320" width="67" height="46" rx="6"/>
+    <rect x="879" y="320" width="67" height="46" rx="6"/><rect x="969" y="320" width="67" height="46" rx="6"/>
+    <rect x="969" y="177" width="67" height="46" rx="6"/><rect x="865" y="177" width="67" height="46" rx="6"/>
+  </g>
+  <path d="M906 295l19 19-19 19-19-19z" fill="#ffc395" stroke="#eef6e7" stroke-width="2"/>
+  <g font-family="Arial, sans-serif" fill="#f3eee3">
+    <text x="64" y="122" font-size="24" letter-spacing="2">MOHIT BHAGWANI</text>
+    <text x="61" y="282" font-size="85" font-weight="bold" letter-spacing="-5">Beyond the</text>
+    <text x="61" y="375" font-size="85" font-weight="bold" letter-spacing="-5">Backend<tspan fill="#ffc395">.</tspan></text>
+    <text x="67" y="495" font-size="27" fill="#adc8d1">Design. Build. Scale.</text>
+    <text x="706" y="491" font-size="19" fill="#adc8d1" letter-spacing="1">TRANSACTION ATLAS</text>
+  </g>
+</svg>

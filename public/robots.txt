@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://mohitbhagwani.github.io/sitemap.xml
