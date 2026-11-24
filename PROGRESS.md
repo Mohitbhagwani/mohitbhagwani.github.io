@@ -6,6 +6,8 @@ The first driving prototype was rejected. The current implementation is a transa
 
 ## Implemented
 
+- The 3D skills workshop has eight selectable tool and language exhibits, keyboard and touch navigation, in-scene descriptions, and an accessible text index.
+
 - Full-screen 3D transaction journey with an in-scene packet launch, camera tracking, free orbit, and route controls. The fal connection was checked for pricing; the prototype uses procedural scene assets with no paid generation.
 
 - Docker Compose with Colima ARM64 support, polling hot reload, separate dependency volumes, and reproducible installs.

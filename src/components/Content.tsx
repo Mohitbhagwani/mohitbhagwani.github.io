@@ -13,7 +13,6 @@ import {
   districts,
   experience,
   profile,
-  skills,
   awards,
   type CaseStudy,
 } from "../content/portfolio";
@@ -338,14 +337,6 @@ export function Portfolio({ onOpen }: { onOpen: (id: string) => void }) {
             <span className="location-dot" /> JAIPUR, RAJASTHAN, INDIA{" "}
             <span>26.91° N / 75.79° E</span>
           </div>
-        </div>
-        <div className="skill-groups">
-          {Object.entries(skills).map(([title, items]) => (
-            <div key={title}>
-              <h3>{title}</h3>
-              <p>{items.join(" · ")}</p>
-            </div>
-          ))}
         </div>
       </section>
       <section id="recognition" className="section">

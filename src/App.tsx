@@ -10,6 +10,7 @@ import {
 import { districts, caseStudies, profile } from "./content/portfolio";
 import Modal from "./components/Modal";
 import TraceAtlas from "./components/TraceAtlas";
+import Workshop from "./components/Workshop";
 import { CaseDetail, DistrictDetail, Portfolio } from "./components/Content";
 
 const Playground = lazy(() => import("./simulations/Playground"));
@@ -83,6 +84,7 @@ export default function App() {
         <nav aria-label="Main navigation">
           <a href="#work">Case studies</a>
           <a href="#experience">Experience</a>
+          <a href="#skills">Skills</a>
           <a href="#contact">
             Contact <ArrowUpRight size={14} />
           </a>
@@ -100,6 +102,7 @@ export default function App() {
       </header>
       <main>
         <TraceAtlas plain={plain} onOpen={open} />
+        <Workshop plain={plain} onOpen={open} />
         <Portfolio onOpen={open} />
       </main>
       <footer>

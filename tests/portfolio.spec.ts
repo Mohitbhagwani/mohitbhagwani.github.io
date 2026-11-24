@@ -266,3 +266,84 @@ test("immersive journey launches from the 3D packet and exits cleanly", async ({
   await expect(journey).toHaveCount(0);
   await expect(page.getByTestId("trace-state")).toHaveText("REFUNDED");
 });
+
+test("skills workshop supports its accessible tool list", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/#skills");
+  const workshop = page.locator("#skills");
+  await expect(workshop.locator("canvas")).toHaveCount(0);
+  await workshop
+    .getByRole("button", { name: "MCP & LanceDB", exact: true })
+    .click();
+  await expect(
+    workshop.getByRole("heading", { name: "MCP & LanceDB" }),
+  ).toBeVisible();
+  await workshop.getByRole("button", { name: "Read related work" }).click();
+  await expect(page.getByRole("dialog")).toContainText(
+    "Find the code behind a payment failure",
+  );
+});
+
+test("3D workshop responds to exhibits and movement", async ({
+  page,
+}, info) => {
+  await page.goto("/#skills");
+  if (info.project.name === "mobile") {
+    await page.getByRole("button", { name: "Enable 3D" }).click();
+  }
+  const workshop = page.locator("#skills");
+  const stage = workshop.getByLabel("Skills workshop scene");
+  await stage.scrollIntoViewIfNeeded();
+  await expect(stage.locator("canvas")).toBeVisible();
+  await stage
+    .getByRole("button", { name: "Kafka & RabbitMQ", exact: true })
+    .click();
+  await expect(
+    workshop.getByRole("heading", { name: "Kafka & RabbitMQ" }),
+  ).toBeVisible();
+  await page.screenshot({
+    path: `test-results/${info.project.name}-workshop.png`,
+  });
+  await stage.getByRole("button", { name: "Walk the workshop" }).click();
+  await expect(stage.getByRole("button", { name: "Overview" })).toBeVisible();
+  if (info.project.name === "mobile") {
+    const button = stage.getByRole("button", { name: "Walk up", exact: true });
+    const box = await button.boundingBox();
+    if (!box) throw new Error("Touch movement control could not be located");
+    const cdp = await page.context().newCDPSession(page);
+    await cdp.send("Input.dispatchTouchEvent", {
+      type: "touchStart",
+      touchPoints: [{ x: box.x + box.width / 2, y: box.y + box.height / 2 }],
+    });
+    await expect(
+      stage.getByRole("button", { name: "Inspect Java", exact: true }),
+    ).toBeVisible();
+    await cdp.send("Input.dispatchTouchEvent", {
+      type: "touchEnd",
+      touchPoints: [],
+    });
+    await stage
+      .getByRole("button", { name: "Inspect Java", exact: true })
+      .click();
+  } else {
+    await page.keyboard.down("w");
+    await expect(
+      stage.getByRole("button", { name: "Inspect Java", exact: true }),
+    ).toBeVisible();
+    await page.keyboard.up("w");
+    await page.keyboard.press("e");
+  }
+  await expect(
+    workshop.getByRole("heading", { name: "Java", exact: true }),
+  ).toBeVisible();
+  await expect(
+    stage.getByRole("complementary", { name: "Exhibit detail" }),
+  ).toContainText("Java 8 through 21");
+  await page.screenshot({
+    path: `test-results/${info.project.name}-workshop-walk.png`,
+  });
+  await stage.getByRole("button", { name: "Overview" }).click();
+  await expect(
+    stage.getByRole("button", { name: "Walk the workshop" }),
+  ).toBeVisible();
+});

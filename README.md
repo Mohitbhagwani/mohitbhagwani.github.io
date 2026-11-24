@@ -25,6 +25,10 @@ Choose **Enter the 3D journey** to open the full-screen scene. Click **Launch pa
 - The system inspector links each stage to related engineering work. All case studies, experience, and contact details are available from the portfolio below.
 - The 2D mode uses selectable stage cards and the same trace controls. It defaults on small screens and when reduced motion is preferred. It also serves browsers without working WebGL.
 
+## Explore the 3D skills workshop
+
+Open **Skills** to orbit the workshop and select a modeled tool. Choose **Walk the workshop** for an eye-level tour. Use WASD or arrows to move and turn, **E** to inspect a nearby exhibit, or the touch controls on mobile. The same exhibits and complete technology list work in 2D mode.
+
 ## Run checks in Docker
 
 With `web` running:
