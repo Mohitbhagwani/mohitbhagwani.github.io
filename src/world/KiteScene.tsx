@@ -56,7 +56,7 @@ function Range({
         const index = y * width + x;
         const mottling =
           Math.sin(x * 0.12 + Math.sin(y * 0.08) * 2) * Math.cos(y * 0.095);
-        const value = Math.round(170 + mottling * 13 + seed(index) * 36);
+        const value = Math.round(233 + mottling * 7 + seed(index) * 15);
         data.set([value, value, value, 255], index * 4);
       }
     }
@@ -94,12 +94,7 @@ function Range({
       receiveShadow
     >
       <boxGeometry args={[1, 1, 1]} />
-      <meshStandardMaterial
-        color="#ffffff"
-        roughness={0.88}
-        bumpMap={grain}
-        bumpScale={0.06}
-      />
+      <meshStandardMaterial color="#ffffff" roughness={0.88} map={grain} />
     </instancedMesh>
   );
 }
@@ -625,97 +620,127 @@ function FlightRig({
 
   useFrame(({ clock }, delta) => {
     if (!handle.current) return;
-    const dt = Math.min(delta, 0.05),
-      t = clock.elapsedTime,
-      key = keys.current;
+    const dt = Math.min(delta, 0.4);
+    const t = clock.elapsedTime;
+    const key = keys.current;
     frame.current += dt;
     if (flying) {
       const move = Number(key.has("right")) - Number(key.has("left"));
       const lift = Number(key.has("rise")) - Number(key.has("dive"));
       if (key.delete("gust") && boost.current <= 0) boost.current = 1.65;
-      boost.current = Math.max(-0.9, boost.current - dt);
-      const glow = boost.current > 0;
-      const wind = Math.sin(pos.current.z * 0.07 + t * 0.59) * 0.73;
-      recover.current = Math.max(0, recover.current - dt);
-      if (recover.current > 0) {
-        velocity.current.x = THREE.MathUtils.damp(
-          velocity.current.x,
-          move * 5.2,
-          2.8,
-          dt,
+      // Advance in short collision sweeps even when rendering misses frames.
+      const steps = Math.max(1, Math.ceil(dt / 0.04));
+      const step = dt / steps;
+      for (let i = 0; i < steps; i++) {
+        boost.current = Math.max(-0.9, boost.current - step);
+        const glow = boost.current > 0;
+        const wind = Math.sin(pos.current.z * 0.07 + t * 0.59) * 0.73;
+        recover.current = Math.max(0, recover.current - step);
+        if (recover.current > 0) {
+          velocity.current.x = THREE.MathUtils.damp(
+            velocity.current.x,
+            move * 5.2,
+            2.8,
+            step,
+          );
+          velocity.current.y = THREE.MathUtils.damp(
+            velocity.current.y,
+            5.4,
+            2.6,
+            step,
+          );
+          velocity.current.z = THREE.MathUtils.damp(
+            velocity.current.z,
+            -1.6,
+            1.35,
+            step,
+          );
+        } else {
+          velocity.current.x = THREE.MathUtils.damp(
+            velocity.current.x,
+            move * 9.9 + wind,
+            3.5,
+            step,
+          );
+          velocity.current.y = THREE.MathUtils.damp(
+            velocity.current.y,
+            lift * 6.5 + Math.sin(t * 1.05) * 0.37,
+            3.4,
+            step,
+          );
+          velocity.current.z = THREE.MathUtils.damp(
+            velocity.current.z,
+            glow ? -11.8 : -6.3,
+            1.9,
+            step,
+          );
+        }
+        candidate.current
+          .copy(pos.current)
+          .addScaledVector(velocity.current, step);
+        candidate.current.x = THREE.MathUtils.clamp(
+          candidate.current.x,
+          -34,
+          34,
         );
-        velocity.current.y = THREE.MathUtils.damp(
-          velocity.current.y,
-          5.4,
-          2.6,
-          dt,
+        candidate.current.y = THREE.MathUtils.clamp(
+          candidate.current.y,
+          4.4,
+          24,
         );
-        velocity.current.z = THREE.MathUtils.damp(
-          velocity.current.z,
-          -1.6,
-          1.35,
-          dt,
+        const hit = sweepKite(
+          pos.current.toArray(),
+          candidate.current.toArray(),
+          solids,
+          0.73,
         );
-      } else {
-        velocity.current.x = THREE.MathUtils.damp(
-          velocity.current.x,
-          move * 9.9 + wind,
-          3.5,
-          dt,
+        if (hit) {
+          pos.current.lerp(candidate.current, Math.max(0, hit.fraction - 0.02));
+          pos.current.x += hit.normal[0] * 0.09;
+          pos.current.y += hit.normal[1] * 0.09;
+          pos.current.z += hit.normal[2] * 0.09;
+          velocity.current.set(
+            hit.normal[0] * 4.5,
+            Math.max(3.8, hit.normal[1] * 4.6),
+            hit.normal[2] * 3.2,
+          );
+          boost.current = 0;
+          if (recover.current < 0.2) {
+            onImpact(hit.solid.name);
+            if (ripple.current) {
+              ripple.current.visible = true;
+              ripple.current.scale.setScalar(0.4);
+              ripple.current.material.opacity = 0.8;
+              ripple.current.position.copy(pos.current);
+            }
+          }
+          recover.current = 0.68;
+        } else pos.current.copy(candidate.current);
+        const nearby = landmarkNear(
+          pos.current.x,
+          pos.current.y,
+          pos.current.z,
         );
-        velocity.current.y = THREE.MathUtils.damp(
-          velocity.current.y,
-          lift * 6.5 + Math.sin(t * 1.05) * 0.37,
-          3.4,
-          dt,
-        );
-        velocity.current.z = THREE.MathUtils.damp(
-          velocity.current.z,
-          glow ? -11.8 : -6.3,
-          1.9,
-          dt,
-        );
-      }
-      candidate.current.copy(pos.current).addScaledVector(velocity.current, dt);
-      candidate.current.x = THREE.MathUtils.clamp(candidate.current.x, -34, 34);
-      candidate.current.y = THREE.MathUtils.clamp(candidate.current.y, 4.4, 24);
-      const hit = sweepKite(
-        pos.current.toArray(),
-        candidate.current.toArray(),
-        solids,
-        0.73,
-      );
-      if (hit) {
-        pos.current.lerp(candidate.current, Math.max(0, hit.fraction - 0.02));
-        pos.current.x += hit.normal[0] * 0.09;
-        pos.current.y += hit.normal[1] * 0.09;
-        pos.current.z += hit.normal[2] * 0.09;
-        velocity.current.set(
-          hit.normal[0] * 4.5,
-          Math.max(3.8, hit.normal[1] * 4.6),
-          hit.normal[2] * 3.2,
-        );
-        boost.current = 0;
-        if (recover.current < 0.2) {
-          onImpact(hit.solid.name);
-          if (ripple.current) {
-            ripple.current.visible = true;
-            ripple.current.scale.setScalar(0.4);
-            ripple.current.material.opacity = 0.8;
-            ripple.current.position.copy(pos.current);
+        if (nearby && !landmarkSeen.current.has(nearby.id)) {
+          landmarkSeen.current.add(nearby.id);
+          onLandmark(nearby.id);
+        }
+        if (pos.current.z < -91) {
+          pos.current.set(...launch);
+          velocity.current.z = -3;
+          camera.position.set(13, 18, 19);
+        }
+        for (const roof of rooftops) {
+          if (found.current.has(roof.id)) continue;
+          const [x, y, z] = roof.at;
+          if (
+            Math.abs(pos.current.z - z) < 3.1 &&
+            Math.hypot(pos.current.x - x, pos.current.y - y) < 3.9
+          ) {
+            found.current.add(roof.id);
+            onDiscover(roof);
           }
         }
-        recover.current = 0.68;
-      } else pos.current.copy(candidate.current);
-      const nearby = landmarkNear(pos.current.x, pos.current.y, pos.current.z);
-      if (nearby && !landmarkSeen.current.has(nearby.id)) {
-        landmarkSeen.current.add(nearby.id);
-        onLandmark(nearby.id);
-      }
-      if (pos.current.z < -91) {
-        pos.current.set(...launch);
-        velocity.current.z = -3;
-        camera.position.set(13, 18, 19);
       }
       camPoint.current.set(
         pos.current.x + 5.8,
@@ -728,23 +753,12 @@ function FlightRig({
         pos.current.z - 5.6,
       );
       camera.position.lerp(camPoint.current, 1 - Math.exp(-dt * 2.2));
-      for (const roof of rooftops) {
-        if (found.current.has(roof.id)) continue;
-        const [x, y, z] = roof.at;
-        if (
-          Math.abs(pos.current.z - z) < 3.1 &&
-          Math.hypot(pos.current.x - x, pos.current.y - y) < 3.9
-        ) {
-          found.current.add(roof.id);
-          onDiscover(roof);
-        }
-      }
       if (frame.current >= nextRead.current) {
         nextRead.current = frame.current + 0.16;
         onTelemetry({
           distance: Math.max(0, Math.round(launch[2] - pos.current.z)),
           altitude: Math.round(pos.current.y),
-          gust: glow,
+          gust: boost.current > 0,
         });
       }
     } else if (!flight) {
@@ -782,7 +796,7 @@ function FlightRig({
       }
     }
     if (ripple.current?.visible) {
-      ripple.current.scale.multiplyScalar(1 + dt * 3.4);
+      ripple.current.scale.multiplyScalar(Math.exp(dt * 2.9));
       ripple.current.material.opacity = Math.max(
         0,
         ripple.current.material.opacity - dt * 1.85,
