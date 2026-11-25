@@ -23,7 +23,7 @@ import {
   Wind,
 } from "lucide-react";
 import { rooftops, type Rooftop, type FlightKey } from "../content/kite";
-import { landmarks } from "../content/jaipur";
+import { landmarks, type JaipurLandmark } from "../content/jaipur";
 import { profile } from "../content/portfolio";
 
 const Scene = lazy(() => import("../world/KiteScene"));
@@ -70,9 +70,12 @@ export default function KiteFlight({ plain }: { plain: boolean }) {
   const [visited, setVisited] = useState<string[]>([]);
   const [surveyed, setSurveyed] = useState<string[]>([]);
   const [map, setMap] = useState(false);
+  const [landmark, setLandmark] = useState<JaipurLandmark | null>(null);
+  const guideToggle = useRef<HTMLButtonElement>(null);
+  const launchButton = useRef<HTMLButtonElement>(null);
   const [impact, setImpact] = useState("");
   const timer = useRef<number | undefined>(undefined);
-  const flightWasRunning = useRef(false);
+  const [pausedForGuide, setPausedForGuide] = useState(false);
   const [discovery, setDiscovery] = useState<Rooftop | null>(null);
   const [stats, setStats] = useState({
     distance: 0,
@@ -81,8 +84,15 @@ export default function KiteFlight({ plain }: { plain: boolean }) {
   });
   const area = useRef<HTMLElement>(null);
   const input = useRef(new Set<FlightKey>());
+  const pauseFlight = useCallback(() => {
+    setFlying(false);
+    requestAnimationFrame(() =>
+      launchButton.current?.focus({ preventScroll: true }),
+    );
+  }, []);
   const showScene = !plain && !failed;
   const isFlying = showScene && flying && visible;
+  const flightView = isFlying || (showScene && map && pausedForGuide);
   const onReady = useCallback(() => setReady(true), []);
   const onError = useCallback(() => {
     setFailed(true);
@@ -125,17 +135,16 @@ export default function KiteFlight({ plain }: { plain: boolean }) {
     const keys = input.current;
     const down = (e: KeyboardEvent) => {
       const target = e.target;
-      if (
-        !(target instanceof Node) ||
-        !area.current?.contains(target) ||
-        (target instanceof HTMLElement &&
-          target.closest("a, button, input, select, textarea"))
-      )
-        return;
+      if (!(target instanceof Node) || !area.current?.contains(target)) return;
       if (e.key === "Escape") {
-        setFlying(false);
+        pauseFlight();
         return;
       }
+      if (
+        target instanceof HTMLElement &&
+        target.closest("a, button, input, select, textarea")
+      )
+        return;
       const move = direction[e.key] ?? direction[e.key.toLowerCase()];
       if (move) {
         e.preventDefault();
@@ -156,7 +165,7 @@ export default function KiteFlight({ plain }: { plain: boolean }) {
       window.removeEventListener("keyup", up);
       window.removeEventListener("blur", clear);
     };
-  }, [isFlying]);
+  }, [isFlying, pauseFlight]);
   function start(reset = false) {
     setDiscovery(null);
     setImpact("");
@@ -166,14 +175,32 @@ export default function KiteFlight({ plain }: { plain: boolean }) {
       setStats({ distance: 0, altitude: 14, gust: false });
     }
     setFlying(true);
-    area.current?.focus({ preventScroll: true });
+    const surface = area.current;
+    if (surface) {
+      window.scrollTo({
+        top: window.scrollY + surface.getBoundingClientRect().top,
+        behavior: "instant",
+      });
+      surface.focus({ preventScroll: true });
+    }
   }
+  function closeGuide() {
+    setMap(false);
+    if (pausedForGuide && showScene) {
+      setFlying(true);
+      area.current?.focus({ preventScroll: true });
+    } else {
+      guideToggle.current?.focus({ preventScroll: true });
+    }
+    setPausedForGuide(false);
+  }
+
   const next = rooftops.find((roof) => !visited.includes(roof.id));
   return (
     <section
       ref={area}
       className="kite-hero"
-      data-flight={isFlying}
+      data-flight={flightView}
       data-3d={showScene}
       tabIndex={-1}
       aria-label="Kites over Jaipur"
@@ -207,7 +234,7 @@ export default function KiteFlight({ plain }: { plain: boolean }) {
           )}
         </div>
       )}
-      <div className="kite-title">
+      <div className="kite-title" hidden={flightView}>
         <p>
           <i className="kite-location-dot" /> BACKEND ENGINEER <span>·</span>{" "}
           JAIPUR, INDIA
@@ -227,16 +254,12 @@ export default function KiteFlight({ plain }: { plain: boolean }) {
         <div className="kite-actions">
           {showScene && !isFlying && (
             <button
+              ref={launchButton}
               className="kite-launch"
               disabled={!ready}
               onClick={() => start()}
             >
               <Play size={16} /> {flight ? "Resume flight" : "Launch kite"}
-            </button>
-          )}
-          {isFlying && (
-            <button className="kite-pause" onClick={() => setFlying(false)}>
-              <Pause size={14} /> Pause
             </button>
           )}
           <a href="#work" onClick={() => setFlying(false)}>
@@ -250,84 +273,106 @@ export default function KiteFlight({ plain }: { plain: boolean }) {
         </div>
         {showScene && !isFlying && (
           <p className="kite-experience-label">
-            Kites over Jaipur <span>·</span> An interactive tour of my work
+            Fly over Jaipur and find my projects on the rooftops.
           </p>
         )}
       </div>
-      {showScene && (
-        <button
-          className="jaipur-map-toggle"
-          aria-expanded={map}
-          aria-controls="jaipur-map"
-          onClick={() => {
-            if (!map) {
-              flightWasRunning.current = isFlying;
-              setFlying(false);
-              setMap(true);
-            } else {
-              setMap(false);
-              if (flightWasRunning.current) {
-                setFlying(true);
-                area.current?.focus({ preventScroll: true });
-              }
-            }
-          }}
-        >
-          <Map size={17} /> City map
-        </button>
-      )}
-      {map && showScene && (
+      <button
+        ref={guideToggle}
+        className="jaipur-map-toggle"
+        aria-expanded={map}
+        aria-controls={map ? "jaipur-map" : undefined}
+        onClick={() => {
+          if (map) {
+            closeGuide();
+          } else {
+            setPausedForGuide(isFlying);
+            setFlying(false);
+            setMap(true);
+          }
+        }}
+      >
+        <Map size={17} /> Jaipur guide
+      </button>
+      {map && (
         <aside
           id="jaipur-map"
           className="jaipur-map"
           aria-label="Jaipur landmarks"
+          onKeyDown={(event) => {
+            if (event.key === "Escape") closeGuide();
+          }}
         >
           <header>
-            <span>JAIPUR</span>
-            <button
-              aria-label="Close city map"
-              onClick={() => {
-                setMap(false);
-                if (flightWasRunning.current) {
-                  setFlying(true);
-                  area.current?.focus({ preventScroll: true });
-                }
-              }}
-            >
-              <X size={17} />
+            <h2>Explore Jaipur</h2>
+            <button aria-label="Close Jaipur guide" onClick={closeGuide}>
+              <X size={20} />
             </button>
           </header>
-          <h2>Landmarks</h2>
-          <p>The flight compresses distances into one scenic route.</p>
-          <div className="jaipur-route-map" aria-hidden="true">
-            <div className="jaipur-map-lake" />
+          <p>Pick a landmark to see what to look for on the flight.</p>
+          <div
+            className="jaipur-route-map"
+            role="group"
+            aria-label="Landmark map"
+          >
+            <div className="jaipur-map-lake" aria-hidden="true" />
             <i className="jaipur-map-start" title="Launch terrace" />
             {landmarks.map((site, i) => (
-              <i
+              <button
+                type="button"
                 className="jaipur-map-pin"
+                aria-label={`Locate ${site.name}`}
+                aria-pressed={landmark?.id === site.id}
                 key={site.id}
+                onClick={() => setLandmark(site)}
                 style={{
                   left: `${50 + site.x * 1.16}%`,
-                  top: `${87 + (site.z - 3) * 0.86}%`,
+                  top: `${87 + (site.z - 3) * 0.79}%`,
                   background: site.accent,
                 }}
               >
                 {i + 1}
-              </i>
+              </button>
             ))}
           </div>
           <ol>
             {landmarks.map((site, index) => (
-              <li key={site.id} data-seen={surveyed.includes(site.id)}>
-                <i style={{ background: site.accent }}>{index + 1}</i>
-                <div>
+              <li key={site.id}>
+                <button
+                  type="button"
+                  aria-pressed={landmark?.id === site.id}
+                  onClick={() => setLandmark(site)}
+                >
+                  <i aria-hidden="true" style={{ background: site.accent }}>
+                    {index + 1}
+                  </i>
                   <b>{site.name}</b>
-                  <small>{site.subtitle}</small>
-                </div>
-                <span>{surveyed.includes(site.id) ? "Seen" : ""}</span>
+                  {surveyed.includes(site.id) && <span>Seen</span>}
+                </button>
               </li>
             ))}
           </ol>
+          {landmark && (
+            <div className="jaipur-landmark-detail" aria-live="polite">
+              <strong>{landmark.subtitle}</strong>
+              <p>{landmark.guide}</p>
+            </div>
+          )}
+          <nav className="jaipur-stops" aria-label="Portfolio rooftop stops">
+            <strong>Rooftop stops</strong>
+            {rooftops.map((roof) => (
+              <a
+                href={roof.link}
+                key={roof.id}
+                onClick={() => {
+                  setPausedForGuide(false);
+                  setMap(false);
+                }}
+              >
+                {roof.name} <ArrowUpRight size={15} />
+              </a>
+            ))}
+          </nav>
         </aside>
       )}
       {impact && isFlying && (
@@ -336,80 +381,96 @@ export default function KiteFlight({ plain }: { plain: boolean }) {
           <span>Regaining altitude</span>
         </div>
       )}
-      {showScene && (
-        <div className="kite-hud">
-          <div className="kite-hud-main">
-            <Compass size={17} />
-            <span>{next ? next.name : "All rooftops discovered"}</span>
-            <span>
+      {isFlying && (
+        <div
+          className="kite-flight-deck"
+          role="group"
+          aria-label="Flight instruments"
+        >
+          <div className="kite-route">
+            <Compass size={21} aria-hidden="true" />
+            <div>
+              <span className="kite-deck-label">
+                {next ? "Next rooftop" : "Route complete"}
+              </span>
+              <strong>{next ? next.name : "All rooftops discovered"}</strong>
+            </div>
+            <span
+              className="kite-roof-count"
+              aria-label={`${visited.length} of ${rooftops.length} rooftops discovered`}
+            >
               {visited.length}/{rooftops.length}
             </span>
           </div>
-          <p>
-            {flight
-              ? "Fly through a colored wind ring to discover a rooftop."
-              : "Launch and follow the wind rings over the rooftops."}
-          </p>
-          {flight > 0 && (
-            <div className="kite-meter">
-              <span data-testid="kite-distance">{stats.distance} m</span>
-              <span>{stats.altitude} m high</span>
-              {stats.gust && <span>Gust caught!</span>}
+          <dl className="kite-telemetry">
+            <div>
+              <dt>Distance</dt>
+              <dd data-testid="kite-distance">{stats.distance} m</dd>
             </div>
-          )}
-          {isFlying && (
-            <button className="kite-reset" onClick={() => start(true)}>
-              <RotateCcw size={14} /> Return to launch
+            <div>
+              <dt>Altitude</dt>
+              <dd>{stats.altitude} m</dd>
+            </div>
+          </dl>
+          <div className="kite-flight-actions">
+            <button onClick={pauseFlight}>
+              <Pause size={17} /> Pause flight
             </button>
-          )}
-        </div>
-      )}
-      {isFlying && (
-        <div className="kite-help">
-          <span>
-            <kbd>←</kbd>
-            <kbd>→</kbd> Steer
-          </span>
-          <span>
-            <kbd>↑</kbd>
-            <kbd>↓</kbd> Height
-          </span>
-          <span>
-            <kbd>Space</kbd> Gust
-          </span>
-        </div>
-      )}
-      {isFlying && (
-        <div
-          className="kite-touch"
-          role="group"
-          aria-label="Kite flight controls"
-        >
-          {touch.map(([key, Icon]) => (
             <button
-              key={key}
-              aria-label={`Kite ${key}`}
-              onPointerDown={(e) => {
-                e.preventDefault();
-                e.currentTarget.setPointerCapture(e.pointerId);
-                input.current.add(key);
-              }}
-              onPointerUp={() => {
-                if (key !== "gust") input.current.delete(key);
-              }}
-              onPointerCancel={() => input.current.delete(key)}
-              onLostPointerCapture={() => {
-                if (key !== "gust") input.current.delete(key);
-              }}
+              onClick={() => start(true)}
+              aria-label="Return to launch"
+              title="Return to launch"
             >
-              <Icon size={18} />
+              <RotateCcw size={17} />
             </button>
-          ))}
+          </div>
+          <div className="kite-keyboard-guide">
+            <span>
+              <kbd>←</kbd>
+              <kbd>→</kbd> Steer
+            </span>
+            <span>
+              <kbd>↑</kbd>
+              <kbd>↓</kbd> Altitude
+            </span>
+            <span>
+              <kbd>Space</kbd> Gust
+            </span>
+          </div>
+          <div
+            className="kite-flight-pad"
+            role="group"
+            aria-label="Kite flight controls"
+          >
+            {touch.map(([key, Icon]) => (
+              <button
+                key={key}
+                aria-label={`Kite ${key}`}
+                onPointerDown={(e) => {
+                  e.preventDefault();
+                  e.currentTarget.setPointerCapture(e.pointerId);
+                  input.current.add(key);
+                }}
+                onPointerUp={() => {
+                  if (key !== "gust") input.current.delete(key);
+                }}
+                onPointerCancel={() => input.current.delete(key)}
+                onLostPointerCapture={() => {
+                  if (key !== "gust") input.current.delete(key);
+                }}
+              >
+                <Icon size={20} />
+              </button>
+            ))}
+          </div>
         </div>
       )}
-      {discovery && showScene && (
+      {isFlying && stats.gust && (
+        <span className="kite-gust-note">Gust caught!</span>
+      )}
+      {discovery && isFlying && (
         <aside
-          className="kite-discovery"
+          className="kite-rooftop-card"
           aria-label="Discovered rooftop"
           aria-live="polite"
         >

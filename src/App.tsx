@@ -12,7 +12,12 @@ import Modal from "./components/Modal";
 import TraceAtlas from "./components/TraceAtlas";
 import KiteFlight from "./components/KiteFlight";
 import Workshop from "./components/Workshop";
-import { CaseDetail, DistrictDetail, Portfolio } from "./components/Content";
+import {
+  CaseDetail,
+  DistrictDetail,
+  Portfolio,
+  SelectedWork,
+} from "./components/Content";
 
 const Playground = lazy(() => import("./simulations/Playground"));
 function readViewHash() {
@@ -103,6 +108,7 @@ export default function App() {
       </header>
       <main>
         <KiteFlight plain={plain} />
+        <SelectedWork onOpen={open} />
         <TraceAtlas plain={plain} onOpen={open} />
         <Workshop plain={plain} onOpen={open} />
         <Portfolio onOpen={open} />

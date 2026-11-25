@@ -1,7 +1,11 @@
-import { useState, lazy, Suspense } from "react";
+import { useId, useState, lazy, Suspense } from "react";
 import {
   ArrowUpRight,
-  ArrowRight,
+  ChevronRight,
+  ChevronDown,
+  Boxes,
+  GitBranch,
+  Workflow,
   Trophy,
   GraduationCap,
   Award,
@@ -16,9 +20,10 @@ import {
   awards,
   type CaseStudy,
 } from "../content/portfolio";
+import ArchitectureExplorer from "./ArchitectureExplorer";
+
 const Playground = lazy(() => import("../simulations/Playground"));
 export function CaseDetail({ study }: { study: CaseStudy }) {
-  const [node, setNode] = useState(0);
   return (
     <article className="case-detail">
       <span className="eyebrow">
@@ -46,34 +51,8 @@ export function CaseDetail({ study }: { study: CaseStudy }) {
         <p>{study.contribution}</p>
       </section>
       <section>
-        <h3>A conceptual view of the system</h3>
-        <p className="fine-print">
-          Public educational abstraction. Select a stage to inspect its
-          responsibility.
-        </p>
-        <div className="architecture-flow">
-          {study.architecture.map((n, i) => (
-            <button
-              key={n}
-              onClick={() => setNode(i)}
-              className={node === i ? "active" : ""}
-            >
-              <small>{String(i + 1).padStart(2, "0")}</small>
-              {n}
-              {i < study.architecture.length - 1 && <ArrowRight size={14} />}
-            </button>
-          ))}
-        </div>
-        <p className="node-description" aria-live="polite">
-          <b>{study.architecture[node]}</b> ·{" "}
-          {node === 0
-            ? study.problem
-            : node === study.architecture.length - 1
-              ? study.reliability
-              : node % 2
-                ? study.choices
-                : study.implementation}
-        </p>
+        <h3>Explore the system</h3>
+        <ArchitectureExplorer stages={study.architecture} />
       </section>
       <div className="detail-grid">
         {[
@@ -106,20 +85,19 @@ export function Recognition() {
     <>
       <div className="recognition-grid">
         {awards.map((a, i) => (
-          <article key={a.title} className="award">
-            <div className="award-object">
-              {i % 2 ? (
-                <Award size={52} strokeWidth={1} />
-              ) : (
-                <Trophy size={52} strokeWidth={1} />
-              )}
-            </div>
-            <span className="eyebrow">
-              {a.source} / {a.date}
-            </span>
-            <h3>{a.title}</h3>
+          <details key={a.title} className="award">
+            <summary>
+              <span className="award-object">
+                {i % 2 ? <Award size={34} /> : <Trophy size={34} />}
+              </span>
+              <span className="eyebrow">
+                {a.source} · {a.date}
+              </span>
+              <strong>{a.title}</strong>
+              <ChevronDown size={18} className="disclosure-chevron" />
+            </summary>
             <p>{a.description}</p>
-          </article>
+          </details>
         ))}
       </div>
       <div className="certifications">
@@ -142,22 +120,28 @@ export function Recognition() {
   );
 }
 export function Career() {
+  const roles = useId();
   return (
     <>
       <div className="timeline">
         {experience.map((e, i) => (
-          <article key={e.company}>
-            <div className="timeline-date">
-              <span>{e.period}</span>
-              {i === 0 && <b className="current-tag">CURRENT</b>}
-            </div>
-            <div>
-              <h3>{e.company}</h3>
-              <span className="role">{e.role}</span>
+          <details key={e.company} name={roles} open={i === 0}>
+            <summary>
+              <span className="timeline-date">
+                {e.period}
+                {i === 0 && <b className="current-tag">Current</b>}
+              </span>
+              <span>
+                <strong>{e.company}</strong>
+                <span className="role">{e.role}</span>
+              </span>
+              <ChevronDown size={20} className="disclosure-chevron" />
+            </summary>
+            <div className="timeline-story">
               <h4>{e.description}</h4>
               <p>{e.details}</p>
             </div>
-          </article>
+          </details>
         ))}
       </div>
       <div className="education">
@@ -221,48 +205,96 @@ export function DistrictDetail({
     </>
   );
 }
-export function Portfolio({ onOpen }: { onOpen: (id: string) => void }) {
+export function SelectedWork({ onOpen }: { onOpen: (id: string) => void }) {
+  const [study, setStudy] = useState(caseStudies[0]);
+
   return (
-    <>
-      <section id="work" className="section work-section">
-        <div className="section-heading">
-          <div>
-            <span className="eyebrow">01 / SELECTED ENGINEERING</span>
-            <h2>
-              Behind every seamless
-              <br />
-              experience, a system.
-            </h2>
-          </div>
-          <p>
-            A closer look at the decisions, trade-offs, and details that make
-            backend engineering matter.
-          </p>
+    <section
+      id="work"
+      className="section work-section"
+      aria-labelledby="work-title"
+    >
+      <div className="section-heading">
+        <div>
+          <span className="eyebrow">SELECTED ENGINEERING</span>
+          <h2 id="work-title">Backend case studies</h2>
         </div>
-        <div className="work-list">
-          {caseStudies.map((c) => (
+        <p>
+          Follow a payment, step through a Java migration, or explore another
+          system stage by stage.
+        </p>
+      </div>
+      <div className="case-explorer">
+        <div
+          className="case-picker"
+          role="group"
+          aria-label="Select a case study"
+        >
+          {caseStudies.map((item) => (
             <button
-              className="case-link"
-              key={c.id}
-              onClick={() => onOpen("case/" + c.id)}
+              key={item.id}
+              type="button"
+              aria-pressed={study.id === item.id}
+              aria-controls="case-preview"
+              onClick={() => setStudy(item)}
             >
-              <span className="case-number">{c.number}</span>
-              <div>
-                <small>{c.category}</small>
-                <h3>{c.title}</h3>
-                <div className="tags">
-                  {c.tags.map((t) => (
-                    <span key={t}>{t}</span>
-                  ))}
-                </div>
-              </div>
-              <span className="circle-arrow">
-                <ArrowUpRight size={22} />
-              </span>
+              <span>{item.label}</span>
+              <ChevronRight size={17} aria-hidden="true" />
             </button>
           ))}
         </div>
-      </section>
+        <article id="case-preview" className="case-preview">
+          <header aria-live="polite">
+            <h3>{study.title}</h3>
+            <p>{study.summary}</p>
+          </header>
+          <ArchitectureExplorer key={study.id} stages={study.architecture} />
+          <div className="case-preview-actions">
+            <button
+              className="button dark"
+              onClick={() => onOpen("case/" + study.id)}
+            >
+              Read case study <ArrowUpRight size={17} />
+            </button>
+            {study.demo && (
+              <button
+                className="button"
+                onClick={() => onOpen("demo/" + study.demo)}
+              >
+                Try simulation <ArrowUpRight size={17} />
+              </button>
+            )}
+          </div>
+        </article>
+      </div>
+    </section>
+  );
+}
+
+const experiments = [
+  {
+    id: "payments",
+    title: "Payment orchestration",
+    prompt: "What if a provider times out?",
+    icon: Workflow,
+  },
+  {
+    id: "inventory",
+    title: "Inventory reservations",
+    prompt: "Three buyers want the last two items.",
+    icon: Boxes,
+  },
+  {
+    id: "kyc",
+    title: "Identity verification",
+    prompt: "How does a verification reach manual review?",
+    icon: GitBranch,
+  },
+];
+
+export function Portfolio({ onOpen }: { onOpen: (id: string) => void }) {
+  return (
+    <>
       <section className="lab-section" id="lab">
         <div>
           <span className="eyebrow">02 / THINK LIKE AN ENGINEER</span>
@@ -282,28 +314,22 @@ export function Portfolio({ onOpen }: { onOpen: (id: string) => void }) {
             Educational demonstrations. Zero real transactions.
           </span>
         </div>
-        <button
-          className="lab-art"
-          aria-label="Open payment orchestration simulator"
-          onClick={() => onOpen("demo/payments")}
+        <div
+          className="lab-experiments"
+          role="group"
+          aria-label="Choose an experiment"
         >
-          <div className="lab-grid" />
-          <span className="lab-chip chip-one">
-            REQUEST <small>order-001</small>
-          </span>
-          <span className="lab-line line-one" />
-          <span className="lab-chip chip-core">
-            ∞<small>IDEMPOTENCY</small>
-          </span>
-          <span className="lab-line line-two" />
-          <span className="lab-chip chip-two">
-            ONE PAYMENT <small>exactly one intent</small>
-          </span>
-          <span className="lab-art-caption">
-            <span className="live-dot" /> THE BEAUTY IS IN THE BEHAVIOR{" "}
-            <ArrowUpRight size={16} />
-          </span>
-        </button>
+          {experiments.map(({ id, title, prompt, icon: Icon }) => (
+            <button key={id} type="button" onClick={() => onOpen("demo/" + id)}>
+              <Icon size={24} aria-hidden="true" />
+              <span>
+                <strong>{title}</strong>
+                <small>{prompt}</small>
+              </span>
+              <ArrowUpRight size={17} aria-hidden="true" />
+            </button>
+          ))}
+        </div>
       </section>
       <section id="experience" className="section experience-section">
         <div className="section-heading">
@@ -333,9 +359,13 @@ export function Portfolio({ onOpen }: { onOpen: (id: string) => void }) {
             other engineers can understand and evolve. I also care about the
             people building them.
           </p>
-          <div className="about-footer">
-            <span className="location-dot" /> JAIPUR, RAJASTHAN, INDIA{" "}
-            <span>26.91° N / 75.79° E</span>
+          <div className="about-links">
+            <a href="#work">
+              Explore my work <ArrowUpRight size={16} />
+            </a>
+            <a href="#skills">
+              See my toolkit <ArrowUpRight size={16} />
+            </a>
           </div>
         </div>
       </section>

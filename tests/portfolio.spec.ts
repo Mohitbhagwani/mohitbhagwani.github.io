@@ -9,7 +9,24 @@ test("portfolio navigation, overlays, focus and content", async ({
   await expect(page.getByRole("heading", { level: 1 })).toContainText(
     "Mohit Bhagwani",
   );
-  await page.locator("#work .case-link").first().click();
+  const work = page.locator("#work");
+  const casePicker = work.getByRole("group", { name: "Select a case study" });
+  const currentStage = work.locator(".case-flow-readout");
+  await expect(casePicker.getByRole("button")).toHaveCount(10);
+  await work.getByRole("button", { name: "Next stage" }).click();
+  await expect(currentStage).toContainText("idempotency key");
+  await casePicker.getByRole("button", { name: "Java modernization" }).click();
+  await expect(currentStage).toContainText("Stage 1 of 5");
+  await work.getByRole("button", { name: "Jakarta migration" }).click();
+  await expect(currentStage).toContainText("Move affected imports");
+  await expect(currentStage).toContainText("jakarta.servlet.Filter");
+  await work.screenshot({
+    path: `test-results/${info.project.name}-case-explorer.png`,
+  });
+  await casePicker
+    .getByRole("button", { name: "Payment orchestration" })
+    .click();
+  await work.getByRole("button", { name: "Read case study" }).click();
   await expect(page.getByRole("dialog")).toBeVisible();
   await expect(
     page
@@ -42,7 +59,22 @@ test("portfolio navigation, overlays, focus and content", async ({
   await page.getByRole("button", { name: "Close dialog" }).click();
   await expect(page.locator("#experience")).toContainText("Synoriq");
   await expect(page.locator("#experience")).not.toContainText(/Bluetris/i);
-  await expect(page.locator("#work .case-link")).toHaveCount(10);
+  const career = page.locator("#experience");
+  await career.getByText("Synoriq", { exact: true }).click();
+  await expect(
+    career.getByText(/Built Spring Boot APIs for loan origination/),
+  ).toBeVisible();
+  await page
+    .locator("#lab")
+    .getByRole("button", { name: /Inventory reservations/ })
+    .click();
+  await expect(
+    page.getByRole("tabpanel", { name: "Inventory reservations" }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Close dialog" }).click();
+  const award = page.locator("#recognition details").first();
+  await award.locator("summary").click();
+  await expect(award.locator("p")).toBeVisible();
   await page.locator("#contact").scrollIntoViewIfNeeded();
   await expect(
     page.getByRole("link", { name: "GitHub", exact: true }),
@@ -162,7 +194,11 @@ test("WebGL failure gracefully provides the full portfolio", async ({
   await page.goto("/");
   await expect(page.getByRole("link", { name: "Try the trace" })).toBeVisible();
   await expect(page.getByTestId("world-stage")).toHaveCount(0);
-  await page.locator("#work .case-link").nth(4).click();
+  const work = page.locator("#work");
+  await work
+    .getByRole("button", { name: "KYC architecture", exact: true })
+    .click();
+  await work.getByRole("button", { name: "Read case study" }).click();
   await expect(page.getByRole("dialog")).toContainText(
     "Production implementation has not been confirmed",
   );
@@ -406,6 +442,15 @@ test("Jaipur kite launches, catches a gust, and reveals the first rooftop", asyn
     path: `test-results/${info.project.name}-kite-launch.png`,
   });
   await launch.click();
+  await expect(
+    hero.getByRole("group", { name: "Flight instruments" }),
+  ).toBeVisible();
+  await expect(
+    hero.getByRole("button", { name: "Pause flight" }),
+  ).toBeVisible();
+  expect(
+    await hero.evaluate((element) => element.clientHeight),
+  ).toBeGreaterThanOrEqual(await page.evaluate(() => innerHeight - 1));
   await expect(hero.getByTestId("kite-distance")).not.toHaveText("0 m");
   if (info.project.name === "mobile") {
     await hero.getByRole("button", { name: "Kite gust" }).tap();
@@ -438,7 +483,7 @@ test("Jaipur flight shows landmarks and rebounds when the kite dives into a roof
   const hero = page.getByRole("region", { name: /Kites over Jaipur/ });
   const launch = hero.getByRole("button", { name: "Launch kite" });
   await expect(launch).toBeEnabled({ timeout: 40000 });
-  await hero.getByRole("button", { name: "City map" }).click();
+  await hero.getByRole("button", { name: "Jaipur guide" }).click();
   const guide = hero.getByRole("complementary", { name: "Jaipur landmarks" });
   for (const name of [
     "Hawa Mahal",
@@ -449,7 +494,14 @@ test("Jaipur flight shows landmarks and rebounds when the kite dives into a roof
     "Amber Fort",
   ])
     await expect(guide.getByText(name, { exact: true })).toBeVisible();
-  await guide.getByRole("button", { name: "Close city map" }).click();
+  await guide.getByRole("button", { name: "Locate Jal Mahal" }).click();
+  await expect(
+    guide.getByText("Man Sagar Lake", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    guide.getByRole("link", { name: "The Workshop" }),
+  ).toHaveAttribute("href", "#skills");
+  await guide.getByRole("button", { name: "Close Jaipur guide" }).click();
   await page.screenshot({ path: "test-results/desktop-jaipur-landmarks.png" });
   await launch.click();
   await page.keyboard.down("ArrowDown");

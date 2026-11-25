@@ -29,7 +29,7 @@ export default function Modal({
       if (e.key === "Escape") onClose();
       if (e.key === "Tab") {
         const focusable = ref.current?.querySelectorAll<HTMLElement>(
-          'button:not(:disabled),a[href],input,textarea,select,[tabindex="0"]',
+          'button:not(:disabled),a[href],input,textarea,select,details > summary,[tabindex="0"]',
         );
         if (!focusable?.length) return;
         const first = focusable[0],

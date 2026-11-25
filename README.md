@@ -18,7 +18,11 @@ docker compose down
 
 ## Fly over Jaipur
 
-Choose **Launch kite**, steer with the left and right arrows or **A/D**, and change height with the up and down arrows or **W/S**. Tap **Space** for a short gust. Fly through colored wind rings to discover rooftops. On mobile, enable 3D for touch controls. Visitors can jump straight to the portfolio at any point. The City map identifies six stylized Jaipur landmarks along a compressed route. Rooftops and landmark structures stop and deflect the kite on contact. The street scene includes traffic, bazaar stalls, and pedestrians.
+Choose **Launch kite**, steer with the left and right arrows or **A/D**, and change height with the up and down arrows or **W/S**. Tap **Space** for a short gust. Fly through colored wind rings to discover rooftops. On mobile, enable 3D for touch controls. The **Jaipur guide** has clickable pins for six stylized landmarks and direct links to the portfolio’s rooftop stops. Rooftops and landmark structures stop and deflect the kite on contact. The street scene includes traffic, bazaar stalls, and pedestrians.
+
+## Explore the case studies
+
+Choose a case study, then select a stage or use **Next stage** to follow the system. Payment orchestration and Java modernization show examples that change as you step through. Open the full case study for implementation context, or choose **Try simulation** where available.
 
 ## Use the atlas
 

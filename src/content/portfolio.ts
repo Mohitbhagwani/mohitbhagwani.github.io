@@ -197,7 +197,12 @@ export interface CaseStudy {
   problem: string;
   challenge: string;
   contribution: string;
-  architecture: string[];
+  label: string;
+  architecture: {
+    name: string;
+    description: string;
+    example?: { caption: string; fields: [string, string][] };
+  }[];
   choices: string;
   tradeoffs: string;
   implementation: string;
@@ -212,6 +217,7 @@ export const caseStudies: CaseStudy[] = [
     number: "01",
     title: "One integration. Many payment paths.",
     category: "PAYMENT ORCHESTRATION",
+    label: "Payment orchestration",
     summary: "A provider-independent approach to a provider-specific world.",
     tags: ["Payments", "API design", "Async systems"],
     problem:
@@ -221,12 +227,78 @@ export const caseStudies: CaseStudy[] = [
     contribution:
       "Worked on processor integrations, configurable payment integration architecture, transaction lifecycle management, payment authentication, global methods, payouts, and status synchronization.",
     architecture: [
-      "Merchant API",
-      "Orchestrator",
-      "Provider adapter",
-      "Payment provider",
-      "Webhook inbox",
-      "Status reconciliation",
+      {
+        name: "Merchant API",
+        description:
+          "Accept the order, currency, and amount through one merchant-facing contract.",
+        example: {
+          caption: "Example request",
+          fields: [
+            ["Order", "order-1042"],
+            ["Amount", "INR 1,250.00"],
+          ],
+        },
+      },
+      {
+        name: "Orchestrator",
+        description:
+          "Validate the request, check its idempotency key, and choose the configured payment route.",
+        example: {
+          caption: "Example routing decision",
+          fields: [
+            ["Idempotency key", "order-1042"],
+            ["Action", "Route to card adapter"],
+          ],
+        },
+      },
+      {
+        name: "Provider adapter",
+        description:
+          "Translate the normalized payment into the provider’s authentication and request format.",
+        example: {
+          caption: "Example adapter mapping",
+          fields: [
+            ["Merchant amount", "INR 1,250.00"],
+            ["Provider amount", "125000 minor units"],
+          ],
+        },
+      },
+      {
+        name: "Payment provider",
+        description:
+          "Initiate the payment. Depending on the method, the next action can be authentication, a redirect, or waiting for confirmation.",
+        example: {
+          caption: "Example provider response",
+          fields: [
+            ["Status", "AUTHENTICATION_REQUIRED"],
+            ["Next action", "Customer redirect"],
+          ],
+        },
+      },
+      {
+        name: "Webhook inbox",
+        description:
+          "Authenticate and deduplicate events before applying their state changes.",
+        example: {
+          caption: "Example callback",
+          fields: [
+            ["Event", "payment.authorized"],
+            ["Handling", "Apply once"],
+          ],
+        },
+      },
+      {
+        name: "Status reconciliation",
+        description:
+          "Resolve uncertain outcomes with later status signals and expose the normalized result.",
+        example: {
+          caption: "Example normalized result",
+          fields: [
+            ["Previous", "PENDING"],
+            ["Confirmed", "AUTHORIZED"],
+          ],
+        },
+      },
     ],
     choices:
       "A common domain model and explicit provider adapters separate merchant-facing contracts from provider protocols. Asynchronous updates complement synchronous initiation.",
@@ -246,6 +318,7 @@ export const caseStudies: CaseStudy[] = [
     number: "02",
     title: "Modernize the engine. Keep it running.",
     category: "ENTERPRISE JAVA MODERNIZATION",
+    label: "Java modernization",
     summary: "Moving a living enterprise application from Java 8 to Java 21.",
     tags: ["Java 21", "Spring Boot 3.4", "Jakarta"],
     problem:
@@ -255,11 +328,66 @@ export const caseStudies: CaseStudy[] = [
     contribution:
       "Migrated the application and worked through dependency compatibility, legacy behavior, security compatibility, Redis-backed sessions, and regression testing.",
     architecture: [
-      "Java 8 / Boot 2.3",
-      "Dependency inventory",
-      "Jakarta migration",
-      "Security & sessions",
-      "Java 21 / Boot 3.4",
+      {
+        name: "Java 8 / Boot 2.3",
+        description:
+          "Capture existing application behavior and the runtime dependencies before changing versions.",
+        example: {
+          caption: "Runtime baseline",
+          fields: [
+            ["Java", "8"],
+            ["Spring Boot", "2.3"],
+          ],
+        },
+      },
+      {
+        name: "Dependency inventory",
+        description:
+          "Check dependency and driver versions against the target runtime, including Redis, MySQL, and MongoDB.",
+        example: {
+          caption: "Compatibility checks",
+          fields: [
+            ["Database", "Drivers & serialization"],
+            ["Sessions", "Redis integration"],
+          ],
+        },
+      },
+      {
+        name: "Jakarta migration",
+        description:
+          "Move affected imports and framework integrations from javax to Jakarta, and update incompatible APIs.",
+        example: {
+          caption: "Example import change",
+          fields: [
+            ["Before", "javax.servlet.Filter"],
+            ["After", "jakarta.servlet.Filter"],
+          ],
+        },
+      },
+      {
+        name: "Security & sessions",
+        description:
+          "Verify login, Spring Security rules, and shared sessions backed by Redis.",
+        example: {
+          caption: "Regression checks",
+          fields: [
+            ["Security", "Login & access rules"],
+            ["Session store", "Redis-backed sessions"],
+          ],
+        },
+      },
+      {
+        name: "Java 21 / Boot 3.4",
+        description:
+          "Run regressions on the upgraded runtime, including templates, database access, and key user flows.",
+        example: {
+          caption: "Target runtime",
+          fields: [
+            ["Java", "21"],
+            ["Spring Boot", "3.4"],
+          ],
+        },
+      },
     ],
     choices:
       "Spring Session Redis retains shared-session capability. MySQL and MongoDB integrations need driver and serialization compatibility checks alongside framework changes.",
@@ -279,6 +407,7 @@ export const caseStudies: CaseStudy[] = [
     number: "03",
     title: "The complexity behind a simple tap.",
     category: "DIGITAL WALLET INTEGRATIONS",
+    label: "Digital wallets",
     summary:
       "Connecting Google Pay and Apple Pay to server-side payment flows.",
     tags: ["Tokenization", "Google Pay", "Apple Pay"],
@@ -289,11 +418,31 @@ export const caseStudies: CaseStudy[] = [
     contribution:
       "Worked on Google Pay and Apple Pay integrations, server-to-server flows, tokenization requirements, and payment handle lifecycle.",
     architecture: [
-      "Wallet sheet",
-      "Tokenized payment",
-      "Backend validation",
-      "Provider adapter",
-      "Payment lifecycle",
+      {
+        name: "Wallet sheet",
+        description:
+          "The customer selects an eligible wallet and approves the payment.",
+      },
+      {
+        name: "Tokenized payment",
+        description:
+          "The wallet returns a token and any provider-required cryptogram or related metadata.",
+      },
+      {
+        name: "Backend validation",
+        description:
+          "Check the merchant configuration and the wallet payload before constructing a provider request.",
+      },
+      {
+        name: "Provider adapter",
+        description:
+          "Map the wallet-specific token into the provider’s supported request format.",
+      },
+      {
+        name: "Payment lifecycle",
+        description:
+          "Track the payment handle and reconcile asynchronous updates without exposing token data.",
+      },
     ],
     choices:
       "Treat wallet data as sensitive, short-lived input. Keep wallet-specific validation distinct from provider request construction.",
@@ -313,6 +462,7 @@ export const caseStudies: CaseStudy[] = [
     number: "04",
     title: "Different rails. A connected world.",
     category: "GLOBAL PAYMENT RAILS",
+    label: "Global payment rails",
     summary: "Working across the geography and semantics of money movement.",
     tags: ["PIX", "SPEI", "Open Banking"],
     problem:
@@ -322,11 +472,31 @@ export const caseStudies: CaseStudy[] = [
     contribution:
       "Experience with PIX (Brazil), SPEI (Mexico), Interac (Canada), ACH and RTP (US), Open Banking (UK / Europe), Korean virtual accounts, and Venmo payout integration.",
     architecture: [
-      "Regional method",
-      "Method validation",
-      "Bank / provider",
-      "Async confirmation",
-      "Reconciliation",
+      {
+        name: "Regional method",
+        description:
+          "Select the regional rail, such as PIX, SPEI, ACH, or Open Banking.",
+      },
+      {
+        name: "Method validation",
+        description:
+          "Check the fields and capabilities the rail requires, including applicable consent or redirect steps.",
+      },
+      {
+        name: "Bank / provider",
+        description:
+          "Initiate the appropriate bank or provider workflow and retain the reference used to track it.",
+      },
+      {
+        name: "Async confirmation",
+        description:
+          "Process the rail’s confirmation, which may arrive independently of the initiation response.",
+      },
+      {
+        name: "Reconciliation",
+        description:
+          "Reconcile final status according to the rail’s cutoff, expiry, and settlement rules.",
+      },
     ],
     choices:
       "Use method-aware validation and normalized states while retaining region and rail information.",
@@ -347,6 +517,7 @@ export const caseStudies: CaseStudy[] = [
     number: "05",
     title: "One identity journey. Flexible providers.",
     category: "KYC ARCHITECTURE · DESIGN WORK",
+    label: "KYC architecture",
     summary: "Designing a provider-independent verification lifecycle.",
     tags: ["State machines", "KYC", "Architecture"],
     problem:
@@ -356,12 +527,36 @@ export const caseStudies: CaseStudy[] = [
     contribution:
       "Designed a provider-independent KYC orchestration architecture. Production implementation has not been confirmed.",
     architecture: [
-      "Unified KYC API",
-      "Identity mapping",
-      "Provider adapter",
-      "User verification",
-      "Callback inbox",
-      "Normalized status",
+      {
+        name: "Unified KYC API",
+        description:
+          "Create a verification request behind one merchant-facing API.",
+      },
+      {
+        name: "Identity mapping",
+        description:
+          "Associate the verification with the correct customer record.",
+      },
+      {
+        name: "Provider adapter",
+        description:
+          "Choose a configured verification provider and translate the request into its contract.",
+      },
+      {
+        name: "User verification",
+        description:
+          "Send the user to the verification flow and handle the link’s expiry.",
+      },
+      {
+        name: "Callback inbox",
+        description:
+          "Validate and deduplicate provider events before processing their updates.",
+      },
+      {
+        name: "Normalized status",
+        description:
+          "Map provider results to the shared lifecycle, including manual review or a terminal state.",
+      },
     ],
     choices:
       "A shared lifecycle: CREATED → IN_PROGRESS → AWAITING_USER → AWAITING_PROVIDER → MANUAL_REVIEW → COMPLETED, with EXPIRED, FAILED, and CANCELLED as alternative terminal states.",
@@ -382,6 +577,7 @@ export const caseStudies: CaseStudy[] = [
     number: "06",
     title: "Less glue code. More configuration.",
     category: "CONFIGURABLE JSON TRANSFORMATION",
+    label: "JSON transformations",
     summary: "Making provider-specific payloads a configuration problem.",
     tags: ["JSON", "Precision", "Integration design"],
     problem:
@@ -391,11 +587,31 @@ export const caseStudies: CaseStudy[] = [
     contribution:
       "Worked on a configurable JSON transformation engine for dynamic request and response transformations.",
     architecture: [
-      "Source JSON",
-      "Mapping configuration",
-      "Typed operations",
-      "Validation",
-      "Target JSON",
+      {
+        name: "Source JSON",
+        description:
+          "Read the input payload, preserving nested paths and decimal values.",
+      },
+      {
+        name: "Mapping configuration",
+        description:
+          "Resolve the source fields and configured target structure.",
+      },
+      {
+        name: "Typed operations",
+        description:
+          "Apply allowed operations such as renaming fields or converting defined numeric values.",
+      },
+      {
+        name: "Validation",
+        description:
+          "Report missing or invalid data and apply the configured precision rules.",
+      },
+      {
+        name: "Target JSON",
+        description:
+          "Serialize the transformed payload for the downstream contract.",
+      },
     ],
     choices:
       "Explicit, allowlisted operations keep transformations understandable. Monetary conversions require defined precision and rounding behavior.",
@@ -416,6 +632,7 @@ export const caseStudies: CaseStudy[] = [
     number: "07",
     title: "Know what happened. Know what to retry.",
     category: "PAYMENT RELIABILITY & OBSERVABILITY",
+    label: "Payment reliability",
     summary:
       "Making transaction behavior traceable without leaking sensitive data.",
     tags: ["Idempotency", "Observability", "Webhooks"],
@@ -426,11 +643,31 @@ export const caseStudies: CaseStudy[] = [
     contribution:
       "Experience with idempotency keys, request hashing, correlation identifiers, structured API logging, masking, card validation logging, response normalization, error categorization, and payment debugging.",
     architecture: [
-      "Request + correlation ID",
-      "Idempotency boundary",
-      "Provider call",
-      "Webhook event",
-      "Transaction trace",
+      {
+        name: "Request + correlation ID",
+        description:
+          "Assign a correlation ID so later events can be tied back to the original request.",
+      },
+      {
+        name: "Idempotency boundary",
+        description:
+          "Use the idempotency key and request hash to recognize repeat submissions.",
+      },
+      {
+        name: "Provider call",
+        description:
+          "Record the outcome with safe context and preserve uncertainty when a call times out.",
+      },
+      {
+        name: "Webhook event",
+        description:
+          "Authenticate and deduplicate callbacks while guarding against out-of-order updates.",
+      },
+      {
+        name: "Transaction trace",
+        description:
+          "Follow the correlated events to investigate status without exposing sensitive payment data.",
+      },
     ],
     choices:
       "Use structured events with stable correlation identifiers. Record useful validation outcomes without recording card data or secrets.",
@@ -451,6 +688,7 @@ export const caseStudies: CaseStudy[] = [
     number: "08",
     title: "Good systems are built together.",
     category: "ENGINEERING LEADERSHIP",
+    label: "Engineering leadership",
     summary: "Ownership extends beyond the code you write.",
     tags: ["Team of four", "Code reviews", "Delivery"],
     problem:
@@ -460,11 +698,31 @@ export const caseStudies: CaseStudy[] = [
     contribution:
       "Led four engineers at FiftyFive Technologies. Experience includes code reviews, mentoring, release coordination, technical problem-solving, and communication with QA, product teams, and stakeholders.",
     architecture: [
-      "Shared context",
-      "Technical decisions",
-      "Implementation & review",
-      "QA collaboration",
-      "Release coordination",
+      {
+        name: "Shared context",
+        description:
+          "Align the team on the deliverable, constraints, and owners.",
+      },
+      {
+        name: "Technical decisions",
+        description:
+          "Discuss implementation choices and unblock engineers where decisions affect shared work.",
+      },
+      {
+        name: "Implementation & review",
+        description:
+          "Review changes and capture the reasoning for decisions colleagues will maintain.",
+      },
+      {
+        name: "QA collaboration",
+        description:
+          "Work with QA on defects and regression risks before release.",
+      },
+      {
+        name: "Release coordination",
+        description:
+          "Coordinate readiness and communicate changes to product teams and stakeholders.",
+      },
     ],
     choices:
       "Use code review to share reasoning and make ownership explicit. Coordinate release readiness with the teams that depend on the work.",
@@ -484,6 +742,7 @@ export const caseStudies: CaseStudy[] = [
     number: "09",
     title: "Find the code behind a payment failure.",
     category: "DEVELOPER TOOLING & SEMANTIC SEARCH",
+    label: "Developer tooling",
     summary:
       "Code and configuration discovery with local embeddings, alongside tools for tracing payment failures.",
     tags: ["MCP", "LanceDB", "Ollama", "Grafana Loki"],
@@ -494,11 +753,31 @@ export const caseStudies: CaseStudy[] = [
     contribution:
       "Built Code Knowledge MCP for semantic search across payment code and provider configuration, and Loki Logs MCP for investigating payment failures.",
     architecture: [
-      "Code and configuration",
-      "Local Ollama embeddings",
-      "LanceDB index",
-      "MCP search tool",
-      "Source references",
+      {
+        name: "Code and configuration",
+        description:
+          "Choose the payment code and provider configuration to index for semantic search.",
+      },
+      {
+        name: "Local Ollama embeddings",
+        description:
+          "Generate embeddings locally with Ollama to support queries phrased in domain language.",
+      },
+      {
+        name: "LanceDB index",
+        description:
+          "Store searchable embeddings in LanceDB so matching code and configuration can be retrieved.",
+      },
+      {
+        name: "MCP search tool",
+        description:
+          "Expose the retrieval workflow through MCP so developers can query the index.",
+      },
+      {
+        name: "Source references",
+        description:
+          "Return source references that developers can inspect before relying on the result.",
+      },
     ],
     choices:
       "Local embeddings and a vector index supported semantic retrieval. Grafana Loki and LogQL supported a separate log investigation workflow.",
@@ -518,6 +797,7 @@ export const caseStudies: CaseStudy[] = [
     number: "10",
     title: "From loan application to servicing.",
     category: "LENDING PLATFORM ENGINEERING",
+    label: "Lending platform",
     summary: "Spring Boot APIs and adapters for credit-scoring and payments.",
     tags: ["Lending", "Spring Boot", "Adapter pattern", "Elasticsearch"],
     problem:
@@ -527,11 +807,31 @@ export const caseStudies: CaseStudy[] = [
     contribution:
       "At Synoriq, developed APIs across the three loan lifecycle areas and integrated credit-scoring and payment services with retry and fallback behavior.",
     architecture: [
-      "Loan lifecycle API",
-      "Lending service",
-      "Integration adapters",
-      "Credit scoring / payments",
-      "Operational search",
+      {
+        name: "Loan lifecycle API",
+        description:
+          "Accept requests for loan origination, servicing, or modification through Spring Boot APIs.",
+      },
+      {
+        name: "Lending service",
+        description:
+          "Apply the appropriate lifecycle rules before calling optional integrations.",
+      },
+      {
+        name: "Integration adapters",
+        description:
+          "Map requests through adapters so downstream contracts stay separate from lending logic.",
+      },
+      {
+        name: "Credit scoring / payments",
+        description:
+          "Call scoring or payments with defined retries and fallback behavior.",
+      },
+      {
+        name: "Operational search",
+        description:
+          "Use Elasticsearch to support operational search and analytics across the lifecycle.",
+      },
     ],
     choices:
       "Spring Boot REST APIs exposed the lifecycle modules. Adapters isolated external service contracts. Elasticsearch supported search and analytics.",

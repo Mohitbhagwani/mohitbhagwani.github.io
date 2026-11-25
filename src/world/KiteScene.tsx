@@ -17,6 +17,7 @@ type V3 = [number, number, number];
 type Piece = { at: V3; size: V3; color: string; turn?: number };
 const sling = new THREE.Vector3(2.9, 6.3, 5.4);
 const launch = [4.3, 13.5, 5] as const;
+const overlook: V3 = [19, 16.5, 28.5];
 const sand = [
   "#d28362",
   "#edaa79",
@@ -28,11 +29,45 @@ const sand = [
   "#dda376",
 ];
 const edge = "#efbd95";
+const pavilionSites: V3[] = [
+  [-18, 7.7, -11],
+  [20, 8.5, -25],
+  [-17, 9.1, -55.3],
+  [9, 8.4, -74],
+];
+const pavilionBase = 5.3;
 function seed(n: number) {
   const x = Math.sin(n * 32.198 + 18.125) * 45991.358;
   return x - Math.floor(x);
 }
-function Range({ pieces }: { pieces: Piece[] }) {
+function Range({
+  pieces,
+  plaster = false,
+}: {
+  pieces: Piece[];
+  plaster?: boolean;
+}) {
+  const grain = useMemo(() => {
+    if (!plaster) return null;
+    const width = 128;
+    const data = new Uint8Array(width * width * 4);
+    for (let y = 0; y < width; y++) {
+      for (let x = 0; x < width; x++) {
+        const index = y * width + x;
+        const mottling =
+          Math.sin(x * 0.12 + Math.sin(y * 0.08) * 2) * Math.cos(y * 0.095);
+        const value = Math.round(170 + mottling * 13 + seed(index) * 36);
+        data.set([value, value, value, 255], index * 4);
+      }
+    }
+    const texture = new THREE.DataTexture(data, width, width);
+    texture.generateMipmaps = true;
+    texture.minFilter = THREE.LinearMipmapLinearFilter;
+    texture.magFilter = THREE.LinearFilter;
+    texture.needsUpdate = true;
+    return texture;
+  }, [plaster]);
+  useEffect(() => () => grain?.dispose(), [grain]);
   const ref = useRef<THREE.InstancedMesh>(null);
   useEffect(() => {
     const mesh = ref.current;
@@ -59,7 +94,12 @@ function Range({ pieces }: { pieces: Piece[] }) {
       receiveShadow
     >
       <boxGeometry args={[1, 1, 1]} />
-      <meshStandardMaterial color="#ffffff" roughness={0.84} />
+      <meshStandardMaterial
+        color="#ffffff"
+        roughness={0.88}
+        bumpMap={grain}
+        bumpScale={0.06}
+      />
     </instancedMesh>
   );
 }
@@ -101,6 +141,12 @@ function cityLayout() {
         continue;
       if (Math.abs(x - 4.7) < 5 && Math.abs(z + 6.2) < 5) continue;
       if (rooftops.some((r) => Math.hypot(x - r.at[0], z - r.at[2]) < 5.9))
+        continue;
+      if (
+        pavilionSites.some(
+          ([px, , pz]) => Math.abs(x - px) < 5.8 && Math.abs(z - pz) < 5.8,
+        )
+      )
         continue;
       const w = 3.4 + seed(i + 27) * 2.5,
         d = 3.4 + seed(i + 7) * 2.7,
@@ -196,6 +242,56 @@ function cityLayout() {
   }
   solid("Bazaar rooftop", [4.7, 4.42, -6.2], [4.98, 8.84, 4.47]);
   solid("Bazaar roof pavilion", [4.7, 9.04, -6.2], [3.16, 1.12, 2.82]);
+  for (const [x, roof, z] of pavilionSites) {
+    box(x, roof / 2, z, pavilionBase, roof, pavilionBase, "#c48770");
+    box(
+      x,
+      roof - 0.07,
+      z,
+      pavilionBase + 0.22,
+      0.23,
+      pavilionBase + 0.22,
+      edge,
+    );
+    box(x, 1.36, z + pavilionBase / 2 + 0.035, 1.08, 2.72, 0.085, "#764f4c");
+    for (const offset of [-1.44, 1.44]) {
+      for (const height of [3.8, roof - 1.6]) {
+        box(
+          x + offset,
+          height,
+          z + pavilionBase / 2 + 0.035,
+          0.64,
+          0.91,
+          0.08,
+          "#78545a",
+        );
+        box(
+          x + offset,
+          height - 0.51,
+          z + pavilionBase / 2 + 0.1,
+          0.89,
+          0.15,
+          0.26,
+          edge,
+        );
+        box(
+          x + pavilionBase / 2 + 0.036,
+          height,
+          z + offset,
+          0.08,
+          0.91,
+          0.64,
+          "#78545a",
+        );
+      }
+    }
+    solid(
+      "Pavilion rooftop",
+      [x, roof / 2, z],
+      [pavilionBase + 0.22, roof, pavilionBase + 0.22],
+    );
+    solid("Roof pavilion", [x, roof + 1.74, z], [4.1, 3.56, 4.1]);
+  }
   for (const roof of rooftops)
     solid(
       roof.name,
@@ -207,7 +303,7 @@ function cityLayout() {
 function City({ pieces }: { pieces: Piece[] }) {
   return (
     <>
-      <Range pieces={pieces} />
+      <Range pieces={pieces} plaster />
       <mesh
         rotation={[-Math.PI / 2, 0, 0]}
         position={[0, -0.04, -44]}
@@ -326,6 +422,14 @@ function RoofLandmark({ roof, seen }: { roof: Rooftop; seen: boolean }) {
     } else if (roof.id === "work") {
       box([x, h + 1.46, z - 1.08], [4.04, 1.97, 0.28], "#9c5f6f");
       box([x, h + 1.51, z - 0.92], [3.67, 1.54, 0.06], "#ffcfaa");
+      for (const side of [-1, 1]) {
+        box([x + side * 1.69, h + 0.4, z - 1.08], [0.22, 0.8, 0.23], "#724f59");
+        box(
+          [x + side * 1.69, h + 0.21, z - 1.08],
+          [0.46, 0.18, 0.61],
+          "#d49b86",
+        );
+      }
       box([x, h + 0.31, z + 1.45], [3.0, 0.42, 0.54], "#785575");
     } else {
       box([x, h + 1.06, z], [3.65, 2.04, 2.85], "#9c6484");
@@ -483,7 +587,7 @@ function FlightRig({
   const camPoint = useRef(new THREE.Vector3());
   const found = useRef(new Set<string>());
   const boost = useRef(0);
-  const { camera, invalidate, scene } = useThree();
+  const { camera, invalidate, scene, size } = useThree();
   useEffect(() => {
     const geometry = new THREE.BufferGeometry();
     geometry.setAttribute(
@@ -515,7 +619,7 @@ function FlightRig({
     recover.current = 0;
     if (ripple.current) ripple.current.visible = false;
     nextRead.current = 0;
-    if (!flight) camera.position.set(22, 17.5, 32);
+    if (!flight) camera.position.set(...overlook);
     invalidate();
   }, [flight, camera, invalidate]);
 
@@ -614,9 +718,9 @@ function FlightRig({
         camera.position.set(13, 18, 19);
       }
       camPoint.current.set(
-        pos.current.x + 7.7,
-        Math.max(11.1, pos.current.y + 3.05),
-        pos.current.z + 15.5,
+        pos.current.x + 5.8,
+        Math.max(11.1, pos.current.y + 2.9),
+        pos.current.z + 12.7,
       );
       target.current.set(
         pos.current.x - 0.95,
@@ -645,12 +749,14 @@ function FlightRig({
       }
     } else if (!flight) {
       target.current.set(1, 8, -4);
-      camera.position.set(22, 17.5, 32);
+      camera.position.set(...overlook);
     }
     if (camera instanceof THREE.PerspectiveCamera) {
+      const portrait = size.width < size.height;
+      const framing = portrait ? 53 : 46;
       const fov = THREE.MathUtils.damp(
         camera.fov,
-        flying && boost.current > 0 ? 51 : 46,
+        flying && boost.current > 0 ? framing + 5 : framing,
         4.1,
         dt,
       );
@@ -751,12 +857,7 @@ function FlightRig({
 function Terraces() {
   return (
     <>
-      {[
-        [-18, 7.7, -11],
-        [20, 8.5, -25],
-        [-16, 10.2, -49],
-        [3, 9.7, -74],
-      ].map(([x, y, z], i) => (
+      {pavilionSites.map(([x, y, z], i) => (
         <group key={i} position={[x, y, z]}>
           <mesh position={[0, 0.06, 0]} castShadow>
             <cylinderGeometry args={[2.04, 2.05, 0.26, 8]} />
@@ -930,19 +1031,19 @@ export default function KiteScene({
   const city = useMemo(() => cityLayout(), []);
   return (
     <Canvas
-      camera={{ position: [22, 17.5, 32], fov: 46, near: 0.1, far: 460 }}
+      camera={{ position: overlook, fov: 46, near: 0.1, far: 460 }}
       shadows
       dpr={[1, 1.24]}
       frameloop={active ? "always" : "demand"}
       gl={{ antialias: true, powerPreference: "high-performance" }}
       style={{ touchAction: "pan-y" }}
     >
-      <fog attach="fog" args={["#d3a08c", 38, 175]} />
-      <hemisphereLight args={["#fcdfd8", "#a07887", 2.25]} />
+      <fog attach="fog" args={["#d7aa97", 48, 165]} />
+      <hemisphereLight args={["#ffeadc", "#96747c", 1.85]} />
       <directionalLight
-        position={[22, 18, -19]}
+        position={[-16, 23, -25]}
         color="#ffd0a1"
-        intensity={3.1}
+        intensity={2.75}
         castShadow
         shadow-mapSize={[1024, 1024]}
         shadow-camera-left={-24}
