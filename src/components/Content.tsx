@@ -211,6 +211,7 @@ export function SelectedWork({ onOpen }: { onOpen: (id: string) => void }) {
   return (
     <section
       id="work"
+      tabIndex={-1}
       className="section work-section"
       aria-labelledby="work-title"
     >
@@ -295,7 +296,7 @@ const experiments = [
 export function Portfolio({ onOpen }: { onOpen: (id: string) => void }) {
   return (
     <>
-      <section className="lab-section" id="lab">
+      <section className="lab-section" id="lab" tabIndex={-1}>
         <div>
           <span className="eyebrow">02 / THINK LIKE AN ENGINEER</span>
           <h2>
@@ -331,7 +332,11 @@ export function Portfolio({ onOpen }: { onOpen: (id: string) => void }) {
           ))}
         </div>
       </section>
-      <section id="experience" className="section experience-section">
+      <section
+        id="experience"
+        tabIndex={-1}
+        className="section experience-section"
+      >
         <div className="section-heading">
           <div>
             <span className="eyebrow">03 / THE JOURNEY SO FAR</span>
@@ -341,7 +346,7 @@ export function Portfolio({ onOpen }: { onOpen: (id: string) => void }) {
         </div>
         <Career />
       </section>
-      <section id="about" className="section about-section">
+      <section id="about" tabIndex={-1} className="section about-section">
         <div className="about-intro">
           <span className="eyebrow">04 / THE ENGINEER BEHIND THE SYSTEMS</span>
           <h2>
@@ -369,7 +374,7 @@ export function Portfolio({ onOpen }: { onOpen: (id: string) => void }) {
           </div>
         </div>
       </section>
-      <section id="recognition" className="section">
+      <section id="recognition" tabIndex={-1} className="section">
         <div className="section-heading">
           <div>
             <span className="eyebrow">05 / A FEW MILESTONES</span>
@@ -378,7 +383,7 @@ export function Portfolio({ onOpen }: { onOpen: (id: string) => void }) {
         </div>
         <Recognition />
       </section>
-      <section id="contact" className="contact-section">
+      <section id="contact" tabIndex={-1} className="contact-section">
         <span className="eyebrow">
           NEXT / LET’S BUILD SOMETHING THAT MATTERS
         </span>
@@ -396,12 +401,22 @@ export function Portfolio({ onOpen }: { onOpen: (id: string) => void }) {
           <div className="button-row">
             {profile.email ? (
               <a className="button dark" href={"mailto:" + profile.email}>
-                Get in touch <ArrowUpRight size={18} />
+                Email me <ArrowUpRight size={18} />
               </a>
             ) : (
               <button className="button dark" onClick={() => onOpen("contact")}>
                 Let’s connect <ArrowUpRight size={18} />
               </button>
+            )}
+            {profile.linkedin && (
+              <a
+                className="button"
+                href={profile.linkedin}
+                target="_blank"
+                rel="noreferrer"
+              >
+                LinkedIn <ArrowUpRight size={17} />
+              </a>
             )}
             <a
               className="button"

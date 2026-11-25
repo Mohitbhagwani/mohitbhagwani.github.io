@@ -105,7 +105,12 @@ export default function Workshop({
     stage.current?.focus({ preventScroll: true });
   }
   return (
-    <section id="skills" className="workshop" aria-labelledby="workshop-title">
+    <section
+      id="skills"
+      tabIndex={-1}
+      className="workshop"
+      aria-labelledby="workshop-title"
+    >
       <div className="workshop-heading">
         <div>
           <p className="workshop-kicker">LANGUAGES · FRAMEWORKS · TOOLS</p>

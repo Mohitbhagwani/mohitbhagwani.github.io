@@ -143,7 +143,12 @@ export default function TraceAtlas({
     setRunning(false);
   }
   return (
-    <section className="trace-hero" aria-labelledby="atlas-heading">
+    <section
+      id="atlas"
+      tabIndex={-1}
+      className="trace-hero"
+      aria-labelledby="atlas-heading"
+    >
       <div className="trace-mast">
         <div className="trace-intro">
           <p className="trace-kicker">

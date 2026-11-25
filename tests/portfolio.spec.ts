@@ -76,6 +76,15 @@ test("portfolio navigation, overlays, focus and content", async ({
   await award.locator("summary").click();
   await expect(award.locator("p")).toBeVisible();
   await page.locator("#contact").scrollIntoViewIfNeeded();
+  const contact = page.locator("#contact");
+  await expect(contact.getByRole("link", { name: "Email me" })).toHaveAttribute(
+    "href",
+    "mailto:mohittbhagwani@gmail.com",
+  );
+  await expect(contact.getByRole("link", { name: "LinkedIn" })).toHaveAttribute(
+    "href",
+    "https://www.linkedin.com/in/mohittbhagwani/",
+  );
   await expect(
     page.getByRole("link", { name: "GitHub", exact: true }),
   ).toHaveAttribute("href", "https://github.com/Mohitbhagwani");
@@ -90,6 +99,49 @@ test("portfolio navigation, overlays, focus and content", async ({
     path: `test-results/${info.project.name}-portfolio.png`,
   });
 });
+test("optional guided tour follows the whole portfolio and allows jumps", async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/");
+  const launch = page.getByRole("button", { name: "Guided tour", exact: true });
+  const tour = page.getByRole("complementary", {
+    name: "Portfolio guided tour",
+  });
+  await expect(tour).toHaveCount(0);
+  await launch.click();
+  await expect(page).toHaveURL(/#jaipur$/);
+  await expect(tour).toContainText("1 of 9 visited");
+  await expect(tour.getByRole("button", { name: "Next stop" })).toBeFocused();
+  await tour.getByRole("button", { name: "Next stop" }).click();
+  await expect(page).toHaveURL(/#work$/);
+  await page
+    .locator("#work")
+    .getByRole("button", { name: "Read case study" })
+    .click();
+  await expect(tour).toBeHidden();
+  await page.getByRole("button", { name: "Close dialog" }).click();
+  await expect(tour).toContainText("2 of 9 visited");
+  await tour.getByRole("button", { name: "Previous stop" }).click();
+  await expect(page).toHaveURL(/#jaipur$/);
+  await tour.getByRole("button", { name: "All stops" }).click();
+  const stops = tour.getByRole("group", { name: "Tour stops" });
+  await expect(stops.getByRole("button")).toHaveCount(9);
+  await stops.getByRole("button", { name: "Contact", exact: true }).click();
+  await expect(page).toHaveURL(/#contact$/);
+  await expect(tour).toContainText("3 of 9 visited");
+  await tour.getByRole("button", { name: "Continue tour" }).click();
+  await expect(page).toHaveURL(/#atlas$/);
+  for (const id of ["skills", "lab", "experience", "about", "recognition"]) {
+    await tour.getByRole("button", { name: "Next stop" }).click();
+    await expect(page).toHaveURL(new RegExp(`#${id}$`));
+  }
+  await expect(tour).toContainText("9 of 9 visited");
+  await tour.getByRole("button", { name: "Finish tour" }).click();
+  await expect(tour).toHaveCount(0);
+  await expect(page.locator("#recognition")).toBeFocused();
+});
+
 test("payment, duplicates, provider failures and callbacks", async ({
   page,
 }) => {

@@ -12,6 +12,7 @@ import Modal from "./components/Modal";
 import TraceAtlas from "./components/TraceAtlas";
 import KiteFlight from "./components/KiteFlight";
 import Workshop from "./components/Workshop";
+import PortfolioTour from "./components/PortfolioTour";
 import {
   CaseDetail,
   DistrictDetail,
@@ -95,16 +96,19 @@ export default function App() {
             Contact <ArrowUpRight size={14} />
           </a>
         </nav>
-        <button
-          className="atlas-mode"
-          onClick={() => {
-            if (!plain || hasWebGL()) setPlain(!plain);
-          }}
-          aria-pressed={!plain}
-        >
-          {plain ? <Box size={16} /> : <Layers3 size={16} />}{" "}
-          {plain ? "Enable 3D" : "2D portfolio"}
-        </button>
+        <div className="atlas-header-actions">
+          <PortfolioTour suspended={Boolean(modal)} />
+          <button
+            className="atlas-mode"
+            onClick={() => {
+              if (!plain || hasWebGL()) setPlain(!plain);
+            }}
+            aria-pressed={!plain}
+          >
+            {plain ? <Box size={16} /> : <Layers3 size={16} />}{" "}
+            {plain ? "Enable 3D" : "2D portfolio"}
+          </button>
+        </div>
       </header>
       <main>
         <KiteFlight plain={plain} />
@@ -199,7 +203,12 @@ export default function App() {
                 </a>
               )}
               {profile.linkedin && (
-                <a className="button" href={profile.linkedin}>
+                <a
+                  className="button"
+                  href={profile.linkedin}
+                  target="_blank"
+                  rel="noreferrer"
+                >
                   LinkedIn
                 </a>
               )}

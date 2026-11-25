@@ -199,6 +199,7 @@ export default function KiteFlight({ plain }: { plain: boolean }) {
   return (
     <section
       ref={area}
+      id="jaipur"
       className="kite-hero"
       data-flight={flightView}
       data-3d={showScene}

@@ -4,8 +4,8 @@ export const profile = {
   location: "Jaipur, India",
   github: "https://github.com/Mohitbhagwani",
   // Add only verified destinations. Unconfigured actions are explained in the UI.
-  linkedin: "",
-  email: "",
+  linkedin: "https://www.linkedin.com/in/mohittbhagwani/",
+  email: "mohittbhagwani@gmail.com",
   resume:
     "https://drive.google.com/file/d/1wuUAMAJDo88wfrBVkT41LrkUODmZQPE2/view?usp=sharing",
 };

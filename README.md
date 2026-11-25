@@ -16,6 +16,10 @@ Open http://localhost:5173. Hot reload uses polling for macOS/Colima bind mounts
 docker compose down
 ```
 
+## Take the guided tour
+
+Choose **Guided tour** to visit all nine sections in order. Use **All stops** to jump ahead, or **Exit tour** to continue browsing on your own.
+
 ## Fly over Jaipur
 
 Choose **Launch kite**, steer with the left and right arrows or **A/D**, and change height with the up and down arrows or **W/S**. Tap **Space** for a short gust. Fly through colored wind rings to discover rooftops. On mobile, enable 3D for touch controls. The **Jaipur guide** has clickable pins for six stylized landmarks and direct links to the portfolio’s rooftop stops. Rooftops and landmark structures stop and deflect the kite on contact. The street scene includes traffic, bazaar stalls, and pedestrians.

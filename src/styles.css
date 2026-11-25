@@ -3600,3 +3600,202 @@ details[open] > summary .disclosure-chevron {
     bottom: calc(max(16px, env(safe-area-inset-bottom)) + 163px);
   }
 }
+
+.atlas-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.portfolio-tour-launch {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 38px;
+  padding: 7px 11px;
+  border: 1px solid #ffceaaa0;
+  border-radius: 5px;
+  background: #ffc395;
+  color: #182431;
+  font-size: 13px;
+  font-weight: 750;
+  white-space: nowrap;
+}
+.portfolio-tour-launch:hover {
+  background: #ffd4b0;
+}
+.portfolio-tour-panel {
+  position: fixed;
+  z-index: 70;
+  bottom: max(14px, env(safe-area-inset-bottom));
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(760px, calc(100% - 28px));
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 12px 14px;
+  border: 1px solid #8098ac;
+  border-radius: 10px;
+  background: #142332;
+  color: #f7efe1;
+  box-shadow: 0 7px 28px #111d2bbb;
+}
+.portfolio-tour-panel[hidden],
+body:has(#jaipur[data-flight="true"]) .portfolio-tour-panel {
+  display: none;
+}
+#root:has(.portfolio-tour-panel:not([hidden])) > footer {
+  margin-bottom: 135px;
+}
+.portfolio-tour-context strong,
+.portfolio-tour-progress {
+  display: block;
+}
+.portfolio-tour-progress {
+  color: #ffd4b0;
+  font-size: 12px;
+  font-weight: 700;
+}
+.portfolio-tour-context strong {
+  margin-top: 3px;
+  font-size: 17px;
+  line-height: 1.25;
+}
+.portfolio-tour-context p {
+  margin-top: 3px;
+  color: #d0dee5;
+  font-size: 13px;
+  line-height: 1.4;
+}
+.portfolio-tour-actions {
+  display: flex;
+  align-items: stretch;
+  gap: 6px;
+}
+.portfolio-tour-actions button,
+.portfolio-tour-stops button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 42px;
+  min-width: 40px;
+  padding: 6px 9px;
+  border: 1px solid #8098ac;
+  border-radius: 5px;
+  background: #213547;
+  color: #f7efe1;
+  font-size: 13px;
+  font-weight: 700;
+}
+.portfolio-tour-actions button {
+  white-space: nowrap;
+}
+.portfolio-tour-actions button:hover:enabled,
+.portfolio-tour-stops button:hover {
+  background: #304e62;
+}
+.portfolio-tour-actions .portfolio-tour-next {
+  border-color: #ffc395;
+  background: #ffc395;
+  color: #182431;
+}
+.portfolio-tour-actions .portfolio-tour-next:hover {
+  background: #ffd4b0;
+}
+.portfolio-tour-panel button:focus-visible {
+  outline-offset: 2px;
+}
+.portfolio-tour-stops {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  right: 0;
+  width: min(340px, 100%);
+  max-height: max(150px, calc(100svh - 190px));
+  overflow: auto;
+  overscroll-behavior: contain;
+  display: grid;
+  gap: 4px;
+  padding: 7px;
+  border: 1px solid #8098ac;
+  border-radius: 9px;
+  background: #142332;
+  box-shadow: 0 6px 24px #111d2bb0;
+}
+.portfolio-tour-stops button {
+  justify-content: space-between;
+  text-align: left;
+}
+.portfolio-tour-stops button[aria-current="step"] {
+  border-color: #ffc395;
+  color: #ffd4b0;
+}
+.portfolio-tour-stops svg {
+  color: #a3e6d1;
+  flex: none;
+}
+.portfolio-tour-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+@media (max-width: 900px) {
+  .atlas-header nav {
+    gap: 14px;
+  }
+  .atlas-header {
+    gap: 12px;
+  }
+}
+@media (max-width: 760px) {
+  .atlas-header {
+    padding-inline: 12px;
+  }
+  .atlas-brand {
+    gap: 7px;
+  }
+  .atlas-brand small {
+    display: none;
+  }
+  .atlas-mark {
+    width: 33px;
+    height: 34px;
+    font-size: 18px;
+  }
+  .atlas-mode,
+  .portfolio-tour-launch {
+    min-height: 38px;
+    padding-inline: 7px;
+    font-size: 12px;
+  }
+  .atlas-header-actions {
+    gap: 5px;
+  }
+  .portfolio-tour-panel {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    padding: 9px;
+  }
+  .portfolio-tour-actions {
+    justify-content: space-between;
+  }
+}
+@media (max-width: 365px) {
+  .atlas-brand span:nth-child(2) {
+    font-size: 11px;
+  }
+  .atlas-mode,
+  .portfolio-tour-launch {
+    gap: 4px;
+  }
+  .atlas-mode svg,
+  .portfolio-tour-launch svg {
+    width: 14px;
+  }
+}
