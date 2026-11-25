@@ -7,7 +7,7 @@ test("portfolio navigation, overlays, focus and content", async ({
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto("/");
   await expect(page.getByRole("heading", { level: 1 })).toContainText(
-    "Kites over Jaipur",
+    "Mohit Bhagwani",
   );
   await page.locator("#work .case-link").first().click();
   await expect(page.getByRole("dialog")).toBeVisible();
@@ -22,13 +22,23 @@ test("portfolio navigation, overlays, focus and content", async ({
   ).toBeFocused();
   await page.keyboard.press("Escape");
   await expect(page.getByRole("dialog")).toHaveCount(0);
-  await page
+  const resumeUrl =
+    "https://drive.google.com/file/d/1wuUAMAJDo88wfrBVkT41LrkUODmZQPE2/view?usp=sharing";
+  const heroResume = page
     .locator(".kite-hero")
-    .getByRole("button", { name: "View résumé" })
+    .getByRole("link", { name: "View résumé" });
+  await expect(heroResume).toBeVisible();
+  await expect(heroResume).toHaveAttribute("href", resumeUrl);
+  await expect(heroResume).toHaveAttribute("target", "_blank");
+  await page
+    .locator("#contact")
+    .getByRole("button", { name: "Résumé", exact: true })
     .click();
   await expect(
-    page.getByText("Résumé download is not configured.", { exact: false }),
-  ).toBeVisible();
+    page
+      .getByRole("dialog")
+      .getByRole("link", { name: "View résumé on Google Drive" }),
+  ).toHaveAttribute("href", resumeUrl);
   await page.getByRole("button", { name: "Close dialog" }).click();
   await expect(page.locator("#experience")).toContainText("Synoriq");
   await expect(page.locator("#experience")).not.toContainText(/Bluetris/i);
@@ -304,7 +314,24 @@ test("3D workshop responds to exhibits and movement", async ({
   const stage = workshop.getByLabel("Skills workshop scene");
   await stage.scrollIntoViewIfNeeded();
   await expect(stage.locator("canvas")).toBeVisible();
-  await stage
+  await expect(
+    stage.getByText("Ceramic coffee cup", { exact: true }),
+  ).toBeVisible();
+  if (info.project.name === "desktop") {
+    await workshop.locator(".workshop-surface").screenshot({
+      path: "test-results/desktop-skills-java.png",
+    });
+  }
+  await workshop.getByRole("button", { name: "Go", exact: true }).click();
+  await expect(stage.getByText("Go gopher", { exact: true })).toBeVisible();
+  await expect(workshop.getByRole("article")).toContainText("GORM");
+  await expect(workshop.getByRole("article")).toContainText("Renée French");
+  if (info.project.name === "desktop") {
+    await workshop.locator(".workshop-surface").screenshot({
+      path: "test-results/desktop-skills-studio.png",
+    });
+  }
+  await workshop
     .getByRole("button", { name: "Kafka & RabbitMQ", exact: true })
     .click();
   await expect(
@@ -317,6 +344,8 @@ test("3D workshop responds to exhibits and movement", async ({
   await expect(stage.getByRole("button", { name: "Overview" })).toBeVisible();
   if (info.project.name === "mobile") {
     const button = stage.getByRole("button", { name: "Walk up", exact: true });
+    await expect(button).toBeVisible();
+    await button.scrollIntoViewIfNeeded();
     const box = await button.boundingBox();
     if (!box) throw new Error("Touch movement control could not be located");
     const cdp = await page.context().newCDPSession(page);
@@ -369,7 +398,7 @@ test("Jaipur kite launches, catches a gust, and reveals the first rooftop", asyn
   if (info.project.name === "mobile")
     await page.getByRole("button", { name: "Enable 3D" }).click();
   const hero = page.getByRole("region", {
-    name: "Beyond the Backend — Kites over Jaipur",
+    name: "Kites over Jaipur",
   });
   const launch = hero.getByRole("button", { name: "Launch kite" });
   await expect(launch).toBeEnabled({ timeout: 30000 });
@@ -396,4 +425,38 @@ test("Jaipur kite launches, catches a gust, and reveals the first rooftop", asyn
   await found.getByRole("link", { name: "Explore rooftop" }).click();
   await expect(page).toHaveURL(/#skills$/);
   expect(errors).toEqual([]);
+});
+
+test("Jaipur flight shows landmarks and rebounds when the kite dives into a roof", async ({
+  page,
+}, info) => {
+  test.skip(
+    info.project.name === "mobile",
+    "Desktop keyboard collision; shared sweep has unit coverage",
+  );
+  await page.goto("/");
+  const hero = page.getByRole("region", { name: /Kites over Jaipur/ });
+  const launch = hero.getByRole("button", { name: "Launch kite" });
+  await expect(launch).toBeEnabled({ timeout: 40000 });
+  await hero.getByRole("button", { name: "City map" }).click();
+  const guide = hero.getByRole("complementary", { name: "Jaipur landmarks" });
+  for (const name of [
+    "Hawa Mahal",
+    "City Palace",
+    "Jal Mahal",
+    "Albert Hall",
+    "Jantar Mantar",
+    "Amber Fort",
+  ])
+    await expect(guide.getByText(name, { exact: true })).toBeVisible();
+  await guide.getByRole("button", { name: "Close city map" }).click();
+  await page.screenshot({ path: "test-results/desktop-jaipur-landmarks.png" });
+  await launch.click();
+  await page.keyboard.down("ArrowDown");
+  await expect(hero.getByRole("status")).toContainText("Clipped", {
+    timeout: 21000,
+  });
+  await page.keyboard.up("ArrowDown");
+  await expect(hero.getByText("Regaining altitude")).toBeVisible();
+  await page.screenshot({ path: "test-results/desktop-jaipur-collision.png" });
 });

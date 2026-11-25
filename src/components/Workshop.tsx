@@ -6,6 +6,7 @@ import {
   useEffect,
   useRef,
   useState,
+  type CSSProperties,
   type ReactNode,
 } from "react";
 import {
@@ -53,12 +54,11 @@ export default function Workshop({
 }) {
   const [selected, setSelected] = useState<Exhibit>(exhibits[0]);
   const [loaded, setLoaded] = useState(false);
+  const [visible, setVisible] = useState(false);
   const [walking, setWalking] = useState(false);
   const [unavailable, setUnavailable] = useState(false);
   const [nearby, setNearby] = useState<Exhibit | null>(null);
-  const [reset, setReset] = useState(0);
   const [placard, setPlacard] = useState<Exhibit | null>(null);
-  const section = useRef<HTMLElement>(null);
   const stage = useRef<HTMLDivElement>(null);
   const input = useRef(new Set<string>());
   const inspect = useCallback((item: Exhibit) => {
@@ -67,7 +67,6 @@ export default function Workshop({
   }, []);
   const overview = useCallback(() => {
     setWalking(false);
-    setReset((value) => value + 1);
     setPlacard(null);
   }, []);
   const onError = useCallback(() => {
@@ -77,10 +76,11 @@ export default function Workshop({
   const show3d = !plain && !unavailable;
   const canWalk = walking && show3d;
   useEffect(() => {
-    const element = section.current;
+    const element = stage.current;
     if (!element) return;
     const observer = new IntersectionObserver(
       ([entry]) => {
+        setVisible(entry.isIntersecting);
         if (entry.isIntersecting) setLoaded(true);
         else setWalking(false);
       },
@@ -105,12 +105,7 @@ export default function Workshop({
     stage.current?.focus({ preventScroll: true });
   }
   return (
-    <section
-      id="skills"
-      ref={section}
-      className="workshop"
-      aria-labelledby="workshop-title"
-    >
+    <section id="skills" className="workshop" aria-labelledby="workshop-title">
       <div className="workshop-heading">
         <div>
           <p className="workshop-kicker">LANGUAGES · FRAMEWORKS · TOOLS</p>
@@ -118,10 +113,7 @@ export default function Workshop({
             The tools I build with<span>.</span>
           </h2>
         </div>
-        <p>
-          Walk the workshop or select an exhibit to see how I’ve used each
-          technology.
-        </p>
+        <p>Select a technology to see it in 3D and explore how I’ve used it.</p>
       </div>
       <div className="workshop-surface">
         <div
@@ -140,10 +132,10 @@ export default function Workshop({
                 }
               >
                 <Scene
-                  reset={reset}
                   selected={selected.id}
                   onSelect={inspect}
                   walking={canWalk}
+                  active={visible}
                   input={input}
                   onNearby={setNearby}
                   onError={onError}
@@ -153,7 +145,9 @@ export default function Workshop({
           )}
           {show3d && (
             <div className="workshop-stage-top">
-              <span className="workshop-caption">ENGINEERING WORKSHOP</span>
+              <span className="workshop-caption">
+                {canWalk ? "ENGINEERING WORKSHOP" : "TECHNOLOGY SHOWCASE"}
+              </span>
               {canWalk ? (
                 <button onClick={overview}>
                   <RotateCcw size={15} /> Overview
@@ -173,11 +167,11 @@ export default function Workshop({
           )}
           {show3d && (
             <div className="workshop-stage-bottom">
-              <span>
-                {canWalk
-                  ? "WASD / arrows · E to inspect · Esc to exit"
-                  : "Drag to orbit · Select an exhibit"}
-              </span>
+              {canWalk ? (
+                <span>WASD / arrows · E to inspect · Esc to exit</span>
+              ) : (
+                <span className="workshop-object-name">{selected.object}</span>
+              )}
               {canWalk && nearby && (
                 <button onClick={() => inspect(nearby)}>
                   Inspect {nearby.name} <ArrowUpRight size={14} />
@@ -242,8 +236,9 @@ export default function Workshop({
                 key={item.id}
                 onClick={() => inspect(item)}
                 aria-pressed={selected.id === item.id}
+                style={{ "--tool-color": item.color } as CSSProperties}
               >
-                <span style={{ background: item.color }} /> {item.name}
+                {item.name}
               </button>
             ))}
           </div>
@@ -251,6 +246,16 @@ export default function Workshop({
             <p className="workshop-kicker">{selected.type}</p>
             <h3>{selected.name}</h3>
             <p>{selected.summary}</p>
+            {selected.id === "go" && (
+              <p className="workshop-credit">
+                3D adaptation of the{" "}
+                <a href="https://go.dev/blog/gopher">Go gopher</a> by Renée
+                French ·{" "}
+                <a href="https://creativecommons.org/licenses/by/4.0/">
+                  CC BY 4.0
+                </a>
+              </p>
+            )}
             {selected.work && (
               <button
                 onClick={() => {

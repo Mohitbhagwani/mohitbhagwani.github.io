@@ -1,6 +1,7 @@
 export const exhibits = [
   {
     id: "java",
+    object: "Ceramic coffee cup",
     name: "Java",
     type: "Languages",
     color: "#f1a15f",
@@ -11,16 +12,18 @@ export const exhibits = [
   },
   {
     id: "go",
+    object: "Go gopher",
     name: "Go",
     type: "Languages",
     color: "#78d5ea",
     at: [3.75, 0, 5.2],
     summary:
-      "Production exposure to Go and GORM. Java remains my primary backend language.",
+      "Production exposure to Go, including GORM for relational data access.",
     work: null,
   },
   {
     id: "spring",
+    object: "Leaf",
     name: "Spring Boot",
     type: "Frameworks",
     color: "#a9e19b",
@@ -31,6 +34,7 @@ export const exhibits = [
   },
   {
     id: "kafka",
+    object: "Network switch",
     name: "Kafka & RabbitMQ",
     type: "Messaging",
     color: "#b1a6f7",
@@ -41,6 +45,7 @@ export const exhibits = [
   },
   {
     id: "sql",
+    object: "Hard drive",
     name: "SQL & PostgreSQL",
     type: "Data",
     color: "#91b3f7",
@@ -51,6 +56,7 @@ export const exhibits = [
   },
   {
     id: "redis",
+    object: "Memory module",
     name: "Redis",
     type: "Data",
     color: "#f28e9d",
@@ -61,6 +67,7 @@ export const exhibits = [
   },
   {
     id: "docker",
+    object: "Shipping container",
     name: "Docker & Kubernetes",
     type: "Delivery",
     color: "#79c6fb",
@@ -71,6 +78,7 @@ export const exhibits = [
   },
   {
     id: "mcp",
+    object: "Interface hub",
     name: "MCP & LanceDB",
     type: "Developer tooling",
     color: "#ffd395",
@@ -82,6 +90,7 @@ export const exhibits = [
 ] satisfies {
   id: string;
   name: string;
+  object: string;
   type: string;
   color: string;
   at: [number, number, number];

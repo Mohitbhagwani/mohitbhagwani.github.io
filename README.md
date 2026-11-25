@@ -18,7 +18,7 @@ docker compose down
 
 ## Fly over Jaipur
 
-Choose **Launch kite**, steer with the left and right arrows or **A/D**, and change height with the up and down arrows or **W/S**. Tap **Space** for a short gust. Fly through colored wind rings to discover rooftops. On mobile, enable 3D for touch controls. Visitors can jump straight to the portfolio at any point.
+Choose **Launch kite**, steer with the left and right arrows or **A/D**, and change height with the up and down arrows or **W/S**. Tap **Space** for a short gust. Fly through colored wind rings to discover rooftops. On mobile, enable 3D for touch controls. Visitors can jump straight to the portfolio at any point. The City map identifies six stylized Jaipur landmarks along a compressed route. Rooftops and landmark structures stop and deflect the kite on contact. The street scene includes traffic, bazaar stalls, and pedestrians.
 
 ## Use the atlas
 
@@ -31,7 +31,7 @@ Choose **Enter the 3D journey** to open the full-screen scene. Click **Launch pa
 
 ## Explore the 3D skills workshop
 
-Open **Skills** to orbit the workshop and select a modeled tool. Choose **Walk the workshop** for an eye-level tour. Use WASD or arrows to move and turn, **E** to inspect a nearby exhibit, or the touch controls on mobile. The same exhibits and complete technology list work in 2D mode.
+Open **Skills** to select a modeled object and see where its technology shows up in the portfolio. Choose **Walk the workshop** for an eye-level tour. Use WASD or arrows to move and turn, **E** to inspect a nearby exhibit, or the touch controls on mobile. The same experience summaries and full technology list work in 2D mode.
 
 ## Run checks in Docker
 
@@ -63,7 +63,7 @@ docker compose --profile test run --rm -e BASE_URL=http://web:4173 e2e
 
 ## Content and review
 
-Edit `src/content/portfolio.ts` for professional content, case studies, skills, district metadata, and verified contact links. Add an approved résumé under `public/`, then set `profile.resume` to its root-relative path. Empty email, LinkedIn, and résumé settings intentionally display clear configuration notices; no details were guessed. Certification validity is not claimed. Provider names are intentionally omitted pending disclosure review.
+Edit `src/content/portfolio.ts` for professional content, case studies, skills, district metadata, and verified contact links. Set `profile.resume` to the public résumé URL. Certification validity is not claimed. Provider names are intentionally omitted pending disclosure review.
 
 All simulations use fictional data and simplified educational models. Nothing connects to payment processors, banks, identity providers, or production systems. Case-study diagrams are public conceptual abstractions. KYC is explicitly labeled as architecture/design work.
 

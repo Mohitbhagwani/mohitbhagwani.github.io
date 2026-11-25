@@ -2,6 +2,15 @@ import { useEffect, useMemo, useRef, type RefObject } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Html } from "@react-three/drei";
 import * as THREE from "three";
+import { JaipurLandmarks } from "./JaipurLandmarks";
+import JaipurLife from "./JaipurLife";
+import { bounds, sweepKite, type SolidBounds } from "./flight-collision";
+import {
+  inLake,
+  landmarks,
+  landmarkNear,
+  landmarkSolids,
+} from "../content/jaipur";
 import { rooftops, type Rooftop, type FlightKey } from "../content/kite";
 
 type V3 = [number, number, number];
@@ -54,98 +63,148 @@ function Range({ pieces }: { pieces: Piece[] }) {
     </instancedMesh>
   );
 }
-function City() {
-  const pieces = useMemo<Piece[]>(() => {
-    const all: Piece[] = [];
-    const box = (
-      x: number,
-      y: number,
-      z: number,
-      w: number,
-      h: number,
-      d: number,
-      c: string,
-      turn?: number,
-    ) => all.push({ at: [x, y, z], size: [w, h, d], color: c, turn });
-    for (let row = 0; row < 18; row++)
-      for (let col = 0; col < 17; col++) {
-        const i = row * 17 + col + 1;
-        if (seed(i + 84) < 0.11 || (col === 8 && row % 3 !== 0)) continue;
-        const x = (col - 8) * 7.3 + (seed(i + 18) - 0.5) * 1.3,
-          z = 12 - row * 7.25 + (seed(i + 77) - 0.5) * 1.5;
-        if (Math.hypot(x - 4, z - 5) < 9) continue;
-        if (rooftops.some((r) => Math.hypot(x - r.at[0], z - r.at[2]) < 5.9))
-          continue;
-        const w = 3.4 + seed(i + 27) * 2.5,
-          d = 3.4 + seed(i + 7) * 2.7,
-          h = 2.7 + seed(i + 44) * 5.05;
-        const c = sand[Math.floor(seed(i) * sand.length)];
-        box(x, h / 2, z, w, h, d, c);
-        box(x, h - 0.02, z, w + 0.29, 0.22, d + 0.29, edge);
-        for (const sign of [-1, 1]) {
-          box(x, h + 0.27, z + sign * d * 0.48, w, 0.55, 0.18, c);
-          box(x + sign * w * 0.49, h + 0.27, z, 0.17, 0.55, d, c);
-        }
-        const windowColor = seed(i + 220) > 0.69 ? "#a55f54" : "#69485e";
-        for (let level = 1; level < (h > 5.4 ? 3 : 2); level++) {
-          for (const o of [-0.24, 0, 0.24]) {
-            box(
-              x + w * o,
-              (h * level) / 3,
-              z + d / 2 + 0.018,
-              0.46,
-              0.7,
-              0.05,
-              windowColor,
-            );
-            box(
-              x + w * o,
-              (h * level) / 3 - 0.41,
-              z + d / 2 + 0.09,
-              0.65,
-              0.1,
-              0.2,
-              edge,
-            );
-          }
-        }
-        if (seed(i + 113) > 0.56) {
+function cityLayout() {
+  const all: Piece[] = [];
+  const solids: SolidBounds[] = [...landmarkSolids];
+  const solid = (name: string, at: V3, size: V3) =>
+    solids.push(bounds(name, at, size));
+  const box = (
+    x: number,
+    y: number,
+    z: number,
+    w: number,
+    h: number,
+    d: number,
+    c: string,
+    turn?: number,
+  ) => all.push({ at: [x, y, z], size: [w, h, d], color: c, turn });
+  for (let row = 0; row < 18; row++)
+    for (let col = 0; col < 17; col++) {
+      const i = row * 17 + col + 1;
+      if (seed(i + 84) < 0.11 || (col === 8 && row % 3 !== 0)) continue;
+      const x = (col - 8) * 7.3 + (seed(i + 18) - 0.5) * 1.3,
+        z = 12 - row * 7.25 + (seed(i + 77) - 0.5) * 1.5;
+      if (
+        Math.hypot(x - 4, z - 5) < 8.3 ||
+        Math.abs(x) < 4.8 ||
+        Math.abs(z + 1.8) < 3.15
+      )
+        continue;
+      if (
+        inLake(x, z, 3.1) ||
+        landmarks.some(
+          (site) =>
+            Math.abs(x - site.x) < site.wide / 2 + 4.6 &&
+            Math.abs(z - site.z) < site.deep / 2 + 4.6,
+        )
+      )
+        continue;
+      if (Math.abs(x - 4.7) < 5 && Math.abs(z + 6.2) < 5) continue;
+      if (rooftops.some((r) => Math.hypot(x - r.at[0], z - r.at[2]) < 5.9))
+        continue;
+      const w = 3.4 + seed(i + 27) * 2.5,
+        d = 3.4 + seed(i + 7) * 2.7,
+        h = 2.7 + seed(i + 44) * 5.05;
+      const c = sand[Math.floor(seed(i) * sand.length)];
+      box(x, h / 2, z, w, h, d, c);
+      solid(
+        "Old City rooftop",
+        [x, h / 2 + 0.22, z],
+        [w + 0.22, h + 0.49, d + 0.22],
+      );
+      box(x, h - 0.02, z, w + 0.29, 0.22, d + 0.29, edge);
+      for (const sign of [-1, 1]) {
+        box(x, h + 0.27, z + sign * d * 0.48, w, 0.55, 0.18, c);
+        box(x + sign * w * 0.49, h + 0.27, z, 0.17, 0.55, d, c);
+      }
+      const windowColor = seed(i + 220) > 0.69 ? "#a55f54" : "#69485e";
+      for (let level = 1; level < (h > 5.4 ? 3 : 2); level++) {
+        for (const o of [-0.24, 0, 0.24]) {
           box(
-            x + w * 0.19,
-            h + 0.8,
-            z - d * 0.13,
-            w * 0.48,
-            1.6,
-            d * 0.45,
-            sand[(i + 1) % sand.length],
+            x + w * o,
+            (h * level) / 3,
+            z + d / 2 + 0.018,
+            0.46,
+            0.7,
+            0.05,
+            windowColor,
           );
           box(
-            x + w * 0.19,
-            h + 1.62,
-            z - d * 0.13,
-            w * 0.52,
-            0.16,
-            d * 0.49,
+            x + w * o,
+            (h * level) / 3 - 0.41,
+            z + d / 2 + 0.09,
+            0.65,
+            0.1,
+            0.2,
             edge,
           );
         }
-        if (seed(i + 13) > 0.65) {
-          box(x - 0.75, h + 0.51, z + 0.5, 1.1, 1.02, 0.83, "#6b8592");
-          box(x - 0.75, h + 1.04, z + 0.5, 1.17, 0.1, 0.9, "#94a4a7");
-        }
       }
-    box(3, 2.85, 5.5, 10.4, 5.7, 9.8, "#cb866a");
-    box(3, 5.75, 5.5, 10.63, 0.24, 10.06, "#f5be9a");
-    for (const d of [-1, 1]) {
-      box(3, 6.15, 5.5 + d * 4.9, 10.4, 0.65, 0.22, "#dd977a");
-      box(3 + d * 5.18, 6.15, 5.5, 0.22, 0.65, 9.8, "#dd977a");
-      for (let j = 0; j < 11; j++)
-        box(3 + j * 0.93 - 4.65, 6.59, 5.5 + d * 4.9, 0.37, 0.32, 0.31, edge);
+      if (seed(i + 113) > 0.56) {
+        solid(
+          "Rooftop stair tower",
+          [x + w * 0.19, h + 0.82, z - d * 0.13],
+          [w * 0.52, 1.8, d * 0.49],
+        );
+        box(
+          x + w * 0.19,
+          h + 0.8,
+          z - d * 0.13,
+          w * 0.48,
+          1.6,
+          d * 0.45,
+          sand[(i + 1) % sand.length],
+        );
+        box(
+          x + w * 0.19,
+          h + 1.62,
+          z - d * 0.13,
+          w * 0.52,
+          0.16,
+          d * 0.49,
+          edge,
+        );
+      }
+      if (seed(i + 13) > 0.65) {
+        solid(
+          "Rooftop water tank",
+          [x - 0.75, h + 0.55, z + 0.5],
+          [1.15, 1.12, 0.9],
+        );
+        box(x - 0.75, h + 0.51, z + 0.5, 1.1, 1.02, 0.83, "#6b8592");
+        box(x - 0.75, h + 1.04, z + 0.5, 1.17, 0.1, 0.9, "#94a4a7");
+      }
     }
-    box(2.9, 5.99, 5.4, 0.85, 0.4, 0.81, "#694f5e");
-    box(2.9, 6.26, 5.4, 1.08, 0.18, 1.08, "#b98c7c");
-    return all;
-  }, []);
+  box(3, 2.85, 5.5, 10.4, 5.7, 9.8, "#cb866a");
+  box(3, 5.75, 5.5, 10.63, 0.24, 10.06, "#f5be9a");
+  for (const d of [-1, 1]) {
+    box(3, 6.15, 5.5 + d * 4.9, 10.4, 0.65, 0.22, "#dd977a");
+    box(3 + d * 5.18, 6.15, 5.5, 0.22, 0.65, 9.8, "#dd977a");
+    for (let j = 0; j < 11; j++)
+      box(3 + j * 0.93 - 4.65, 6.59, 5.5 + d * 4.9, 0.37, 0.32, 0.31, edge);
+  }
+  box(2.9, 5.99, 5.4, 0.85, 0.4, 0.81, "#694f5e");
+  box(2.9, 6.26, 5.4, 1.08, 0.18, 1.08, "#b98c7c");
+  solid("Launch terrace", [3, 3.19, 5.5], [10.55, 6.38, 9.9]);
+  box(4.7, 4.28, -6.2, 4.71, 8.54, 4.2, "#b86669");
+  box(4.7, 8.56, -6.2, 4.96, 0.32, 4.47, "#f5c6a2");
+  box(4.7, 8.96, -6.2, 2.83, 0.93, 2.48, "#d28f7e");
+  box(4.7, 9.49, -6.2, 3.15, 0.22, 2.82, "#f0be9b");
+  for (const offset of [-1.56, -0.52, 0.52, 1.56]) {
+    box(4.7 + offset, 5.62, -4.08, 0.67, 1.12, 0.08, "#694654");
+    box(4.7 + offset, 4.96, -4.01, 0.86, 0.13, 0.29, "#eab598");
+  }
+  solid("Bazaar rooftop", [4.7, 4.42, -6.2], [4.98, 8.84, 4.47]);
+  solid("Bazaar roof pavilion", [4.7, 9.04, -6.2], [3.16, 1.12, 2.82]);
+  for (const roof of rooftops)
+    solid(
+      roof.name,
+      [roof.at[0], (roof.at[1] - 3.5) / 2, roof.at[2]],
+      [7, roof.at[1] - 3.5, 7],
+    );
+  return { pieces: all, solids };
+}
+function City({ pieces }: { pieces: Piece[] }) {
   return (
     <>
       <Range pieces={pieces} />
@@ -387,10 +446,16 @@ function FlightRig({
   keys,
   onDiscover,
   onTelemetry,
+  onImpact,
+  onLandmark,
+  solids,
 }: {
   flying: boolean;
   flight: number;
   keys: RefObject<Set<FlightKey>>;
+  solids: readonly SolidBounds[];
+  onImpact: (name: string) => void;
+  onLandmark: (id: string) => void;
   onDiscover: (roof: Rooftop) => void;
   onTelemetry: (value: {
     distance: number;
@@ -407,6 +472,12 @@ function FlightRig({
     nextRead = useRef(0);
   const pos = useRef(new THREE.Vector3(...launch));
   const velocity = useRef(new THREE.Vector3());
+  const candidate = useRef(new THREE.Vector3());
+  const windTrails = useRef<THREE.Group>(null);
+  const ripple =
+    useRef<THREE.Mesh<THREE.RingGeometry, THREE.MeshBasicMaterial>>(null);
+  const recover = useRef(0);
+  const landmarkSeen = useRef(new Set<string>());
   const target = useRef(new THREE.Vector3(1, 8, -4));
   const look = useRef(target.current.clone());
   const camPoint = useRef(new THREE.Vector3());
@@ -441,6 +512,8 @@ function FlightRig({
     pos.current.set(...launch);
     velocity.current.set(0, 0, 0);
     boost.current = 0;
+    recover.current = 0;
+    if (ripple.current) ripple.current.visible = false;
     nextRead.current = 0;
     if (!flight) camera.position.set(22, 17.5, 32);
     invalidate();
@@ -459,27 +532,82 @@ function FlightRig({
       boost.current = Math.max(-0.9, boost.current - dt);
       const glow = boost.current > 0;
       const wind = Math.sin(pos.current.z * 0.07 + t * 0.59) * 0.73;
-      velocity.current.x = THREE.MathUtils.damp(
-        velocity.current.x,
-        move * 9.9 + wind,
-        3.5,
-        dt,
+      recover.current = Math.max(0, recover.current - dt);
+      if (recover.current > 0) {
+        velocity.current.x = THREE.MathUtils.damp(
+          velocity.current.x,
+          move * 5.2,
+          2.8,
+          dt,
+        );
+        velocity.current.y = THREE.MathUtils.damp(
+          velocity.current.y,
+          5.4,
+          2.6,
+          dt,
+        );
+        velocity.current.z = THREE.MathUtils.damp(
+          velocity.current.z,
+          -1.6,
+          1.35,
+          dt,
+        );
+      } else {
+        velocity.current.x = THREE.MathUtils.damp(
+          velocity.current.x,
+          move * 9.9 + wind,
+          3.5,
+          dt,
+        );
+        velocity.current.y = THREE.MathUtils.damp(
+          velocity.current.y,
+          lift * 6.5 + Math.sin(t * 1.05) * 0.37,
+          3.4,
+          dt,
+        );
+        velocity.current.z = THREE.MathUtils.damp(
+          velocity.current.z,
+          glow ? -11.8 : -6.3,
+          1.9,
+          dt,
+        );
+      }
+      candidate.current.copy(pos.current).addScaledVector(velocity.current, dt);
+      candidate.current.x = THREE.MathUtils.clamp(candidate.current.x, -34, 34);
+      candidate.current.y = THREE.MathUtils.clamp(candidate.current.y, 4.4, 24);
+      const hit = sweepKite(
+        pos.current.toArray(),
+        candidate.current.toArray(),
+        solids,
+        0.73,
       );
-      velocity.current.y = THREE.MathUtils.damp(
-        velocity.current.y,
-        lift * 6.5 + Math.sin(t * 1.05) * 0.37,
-        3.4,
-        dt,
-      );
-      velocity.current.z = THREE.MathUtils.damp(
-        velocity.current.z,
-        glow ? -11.8 : -6.3,
-        1.9,
-        dt,
-      );
-      pos.current.addScaledVector(velocity.current, dt);
-      pos.current.x = THREE.MathUtils.clamp(pos.current.x, -31, 31);
-      pos.current.y = THREE.MathUtils.clamp(pos.current.y, 8.5, 22);
+      if (hit) {
+        pos.current.lerp(candidate.current, Math.max(0, hit.fraction - 0.02));
+        pos.current.x += hit.normal[0] * 0.09;
+        pos.current.y += hit.normal[1] * 0.09;
+        pos.current.z += hit.normal[2] * 0.09;
+        velocity.current.set(
+          hit.normal[0] * 4.5,
+          Math.max(3.8, hit.normal[1] * 4.6),
+          hit.normal[2] * 3.2,
+        );
+        boost.current = 0;
+        if (recover.current < 0.2) {
+          onImpact(hit.solid.name);
+          if (ripple.current) {
+            ripple.current.visible = true;
+            ripple.current.scale.setScalar(0.4);
+            ripple.current.material.opacity = 0.8;
+            ripple.current.position.copy(pos.current);
+          }
+        }
+        recover.current = 0.68;
+      } else pos.current.copy(candidate.current);
+      const nearby = landmarkNear(pos.current.x, pos.current.y, pos.current.z);
+      if (nearby && !landmarkSeen.current.has(nearby.id)) {
+        landmarkSeen.current.add(nearby.id);
+        onLandmark(nearby.id);
+      }
       if (pos.current.z < -91) {
         pos.current.set(...launch);
         velocity.current.z = -3;
@@ -487,7 +615,7 @@ function FlightRig({
       }
       camPoint.current.set(
         pos.current.x + 7.7,
-        pos.current.y + 3.05,
+        Math.max(11.1, pos.current.y + 3.05),
         pos.current.z + 15.5,
       );
       target.current.set(
@@ -519,6 +647,42 @@ function FlightRig({
       target.current.set(1, 8, -4);
       camera.position.set(22, 17.5, 32);
     }
+    if (camera instanceof THREE.PerspectiveCamera) {
+      const fov = THREE.MathUtils.damp(
+        camera.fov,
+        flying && boost.current > 0 ? 51 : 46,
+        4.1,
+        dt,
+      );
+      if (Math.abs(fov - camera.fov) > 0.007) {
+        camera.fov = fov;
+        camera.updateProjectionMatrix();
+      }
+    }
+    if (windTrails.current) {
+      const winds = windTrails.current;
+      winds.visible = flying && boost.current > 0;
+      if (winds.visible) {
+        winds.position.copy(pos.current);
+        winds.children.forEach((part, i) => {
+          const drift = (t * 12 + i * 1.73) % 11;
+          part.position.set(
+            (i % 2 ? 1 : -1) * (1.32 + (i % 4) * 0.41),
+            0.25 + Math.sin(i * 2.3) * 1.3,
+            drift - 2.5,
+          );
+          part.scale.z = 1.4 + drift * 0.22;
+        });
+      }
+    }
+    if (ripple.current?.visible) {
+      ripple.current.scale.multiplyScalar(1 + dt * 3.4);
+      ripple.current.material.opacity = Math.max(
+        0,
+        ripple.current.material.opacity - dt * 1.85,
+      );
+      if (!ripple.current.material.opacity) ripple.current.visible = false;
+    }
     const kite = handle.current;
     kite.scale.setScalar(flight ? 1 : 1.22);
     kite.position.set(
@@ -529,7 +693,8 @@ function FlightRig({
     kite.rotation.set(
       -0.15 + velocity.current.y * 0.023,
       0.33 + Math.sin(t * 1.9) * 0.12,
-      -velocity.current.x * 0.065 + Math.sin(t * 2.5) * 0.09,
+      -velocity.current.x * 0.065 +
+        Math.sin(t * 2.5) * (0.09 + recover.current * 0.78),
     );
     look.current.lerp(target.current, 1 - Math.exp(-dt * 3.1));
     camera.lookAt(look.current);
@@ -554,9 +719,33 @@ function FlightRig({
     }
   });
   return (
-    <group ref={handle}>
-      <KiteModel />
-    </group>
+    <>
+      <group ref={handle}>
+        <KiteModel />
+      </group>
+      <group ref={windTrails} visible={false}>
+        {Array.from({ length: 11 }, (_, i) => (
+          <mesh key={i}>
+            <boxGeometry args={[0.021, 0.021, 1]} />
+            <meshBasicMaterial
+              color={i % 4 ? "#fff3de" : "#ffc8a2"}
+              transparent
+              opacity={0.36}
+              depthWrite={false}
+            />
+          </mesh>
+        ))}
+      </group>
+      <mesh ref={ripple} visible={false} rotation={[0, 0.3, 0]}>
+        <ringGeometry args={[1.04, 1.13, 28]} />
+        <meshBasicMaterial
+          color="#ffdb9c"
+          side={THREE.DoubleSide}
+          transparent
+          depthWrite={false}
+        />
+      </mesh>
+    </>
   );
 }
 function Terraces() {
@@ -714,6 +903,9 @@ export default function KiteScene({
   keys,
   visited,
   onDiscover,
+  onImpact,
+  onLandmark,
+  surveyed,
   onTelemetry,
   onReady,
   onError,
@@ -723,6 +915,9 @@ export default function KiteScene({
   active: boolean;
   keys: RefObject<Set<FlightKey>>;
   visited: string[];
+  surveyed: string[];
+  onImpact: (name: string) => void;
+  onLandmark: (id: string) => void;
   onDiscover: (roof: Rooftop) => void;
   onTelemetry: (value: {
     distance: number;
@@ -732,11 +927,12 @@ export default function KiteScene({
   onReady: () => void;
   onError: () => void;
 }) {
+  const city = useMemo(() => cityLayout(), []);
   return (
     <Canvas
       camera={{ position: [22, 17.5, 32], fov: 46, near: 0.1, far: 460 }}
       shadows
-      dpr={[1, 1.35]}
+      dpr={[1, 1.24]}
       frameloop={active ? "always" : "demand"}
       gl={{ antialias: true, powerPreference: "high-performance" }}
       style={{ touchAction: "pan-y" }}
@@ -761,7 +957,9 @@ export default function KiteScene({
         intensity={0.5}
       />
       <Atmosphere />
-      <City />
+      <City pieces={city.pieces} />
+      <JaipurLandmarks seen={surveyed} />
+      <JaipurLife />
       <Terraces />
       <AmbientKites />
       {rooftops.map((roof) => (
@@ -776,6 +974,9 @@ export default function KiteScene({
         flight={flight}
         keys={keys}
         onDiscover={onDiscover}
+        onImpact={onImpact}
+        onLandmark={onLandmark}
+        solids={city.solids}
         onTelemetry={onTelemetry}
       />
       <SceneEvents onError={onError} onReady={onReady} />

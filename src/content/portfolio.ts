@@ -6,7 +6,8 @@ export const profile = {
   // Add only verified destinations. Unconfigured actions are explained in the UI.
   linkedin: "",
   email: "",
-  resume: "",
+  resume:
+    "https://drive.google.com/file/d/1wuUAMAJDo88wfrBVkT41LrkUODmZQPE2/view?usp=sharing",
 };
 export const districts = [
   {

@@ -2188,13 +2188,14 @@ input[type="radio"] {
   background: #162636;
 }
 .workshop-stage {
-  height: clamp(420px, 60vw, 680px);
+  height: clamp(400px, 45vw, 560px);
   position: relative;
   isolation: isolate;
-  background: radial-gradient(ellipse at 48% 56%, #34495d, #101c29 80%);
+  background: #c6b9a8;
 }
 .workshop-stage:has(.workshop-list-heading) {
   height: auto;
+  background: #162636;
 }
 .workshop-stage > div:has(canvas) {
   position: absolute !important;
@@ -2253,13 +2254,13 @@ input[type="radio"] {
   gap: 7px;
 }
 .workshop-stage-top button {
-  background: #ffd1a9;
-  border-color: #ffd1a9;
+  background: #f8f4eb;
+  border-color: #514d44a8;
   color: #172a3b;
   font-weight: 760;
 }
 .workshop-stage-top button:hover {
-  background: #ffdfc3;
+  background: #fffdf8;
 }
 .workshop-label {
   white-space: nowrap;
@@ -2274,25 +2275,33 @@ input[type="radio"] {
   grid-template-columns: 1.5fr 1fr;
 }
 .workshop-tools {
-  align-content: start;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 7px;
-  padding: 19px;
+  align-content: center;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  padding: 13px;
+  background: #121b22;
 }
 .workshop-tools button {
-  display: flex;
-  align-items: center;
-  gap: 7px;
+  min-height: 47px;
+  padding: 8px 9px;
+  border-top: 2px solid color-mix(in srgb, var(--tool-color), transparent 60%);
+  background: #1c2a34;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.18;
 }
 .workshop-tools button[aria-pressed="true"] {
-  border-color: #ffbd92;
-  background: #574c48;
+  border-color: var(--tool-color);
+  background: color-mix(in srgb, var(--tool-color) 22%, #1c2a34);
 }
-.workshop-tools button span {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
+.workshop-stage-bottom .workshop-object-name {
+  background: #f8f4eb;
+  border-color: #514d4445;
+  color: #302a24;
+  padding: 8px 11px;
+  font-size: 12px;
+  font-weight: 650;
 }
 .workshop-detail {
   border-left: 1px solid #7494a55e;
@@ -2308,6 +2317,10 @@ input[type="radio"] {
   line-height: 1.5;
   color: #d0dde4;
   margin-top: 6px;
+}
+.workshop-credit a {
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 .workshop-detail button {
   margin-top: 8px;
@@ -2351,7 +2364,7 @@ input[type="radio"] {
 .about-section {
   grid-template-columns: minmax(0, 1fr);
 }
-@media (hover: none), (pointer: coarse) {
+@media (max-width: 760px), (hover: none), (pointer: coarse) {
   .workshop-drive {
     position: absolute;
     z-index: 13;
@@ -2394,6 +2407,9 @@ input[type="radio"] {
   .workshop-detail {
     border-left: 0;
     border-top: 1px solid #7494a55e;
+  }
+  .workshop-tools {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
   .workshop-label {
     font-size: 9px !important;
@@ -2777,5 +2793,334 @@ input[type="radio"] {
       transparent 52%,
       #3021398d 100%
     );
+  }
+}
+
+/* Jaipur flight uses the full scene. The controls sit at its edges. */
+.kite-hero[data-3d="true"] {
+  background: #553a4f;
+  padding-top: clamp(42px, 9vh, 94px);
+}
+.kite-hero[data-3d="true"]::before {
+  background:
+    linear-gradient(94deg, #241929da 0%, #35263870 28%, transparent 60%),
+    linear-gradient(0deg, #291b35b8 0%, transparent 28%);
+}
+.kite-title h1 {
+  font-size: clamp(59px, 7.75vw, 119px);
+  letter-spacing: -0.083em;
+}
+.kite-location-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin: 0 5px 2px 0;
+  border-radius: 50%;
+  background: #ffd8a5;
+  box-shadow: 0 0 12px #ffc98f8a;
+}
+.kite-actions a {
+  background: transparent;
+  border-color: transparent;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  padding-inline: 4px;
+}
+.kite-actions .kite-launch {
+  min-height: 45px;
+  padding-inline: 15px;
+  border-radius: 8px;
+}
+.kite-hero[data-flight="true"] .kite-title {
+  position: absolute;
+  top: 22px;
+  left: max(18px, 4vw);
+}
+.kite-hero[data-flight="true"] .kite-title h1 {
+  font-size: clamp(24px, 2.25vw, 34px);
+}
+.kite-hero[data-flight="true"] .kite-title > p:first-child {
+  font-size: 8px;
+}
+.kite-hud,
+.kite-discovery,
+.kite-help {
+  border: 1px solid #f6dbbf45;
+  background: #2a2232e8;
+  border-radius: 9px;
+  box-shadow: 0 8px 27px #1d142636;
+}
+.kite-hud {
+  padding: 11px 13px;
+  width: min(235px, calc(100% - 34px));
+}
+.kite-hud-main svg {
+  color: #ffe0ae;
+}
+.kite-hud-main {
+  font-size: 12px;
+}
+.kite-waypoint {
+  color: #f4ece5;
+  background: #291d32d4;
+  border-radius: 14px;
+  padding: 5px 9px;
+}
+.jaipur-landmark {
+  display: block;
+  white-space: nowrap;
+  padding: 4px 7px;
+  border-radius: 4px;
+  color: #fff3df;
+  background: #542d458a;
+  font:
+    500 10px ui-monospace,
+    monospace;
+}
+.jaipur-landmark[data-seen="true"] {
+  color: #fff7df;
+  background: #473751;
+}
+.jaipur-map-toggle {
+  position: absolute;
+  z-index: 10;
+  top: 23px;
+  right: max(17px, 4vw);
+  border: 1px solid #f6dbbf55;
+  border-radius: 7px;
+  background: #2a2232ed;
+  color: #fff0dc;
+  padding: 8px 10px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 11px;
+}
+.jaipur-map {
+  position: absolute;
+  z-index: 15;
+  top: 68px;
+  right: max(17px, 4vw);
+  width: min(284px, calc(100% - 34px));
+  padding: 15px;
+  background: #2c2333f8;
+  border: 1px solid #f6dbbf60;
+  border-radius: 9px;
+}
+.jaipur-map header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #eacbad;
+  font:
+    11px ui-monospace,
+    monospace;
+  letter-spacing: 0.12em;
+}
+.jaipur-map header button {
+  background: none;
+  border: none;
+  color: #fff0df;
+  padding: 1px;
+  display: grid;
+  place-items: center;
+}
+.jaipur-map h2 {
+  font-size: 24px;
+  margin: 3px 0;
+}
+.jaipur-map p {
+  font-size: 11px;
+  color: #decddd;
+  line-height: 1.5;
+}
+.jaipur-map ol {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+}
+.jaipur-map li {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 2px;
+  border-top: 1px solid #f6dbbf24;
+}
+.jaipur-map li i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+.jaipur-map li b {
+  display: block;
+  font-size: 11px;
+}
+.jaipur-map li small {
+  display: block;
+  font-size: 9px;
+  color: #ddcddd;
+}
+.jaipur-map li > span {
+  margin-left: auto;
+  color: #f3c698;
+  font-size: 10px;
+}
+.kite-impact {
+  position: absolute;
+  z-index: 14;
+  left: 50%;
+  bottom: 78px;
+  transform: translateX(-50%);
+  text-align: center;
+  border: 1px solid #ffc89d81;
+  border-radius: 8px;
+  background: #543540f0;
+  padding: 8px 13px;
+  color: #fff3e3;
+  font-size: 12px;
+}
+.kite-impact span {
+  display: block;
+  font-size: 10px;
+  margin-top: 3px;
+}
+@media (max-width: 760px) {
+  .kite-hero[data-3d="true"] {
+    padding-top: 40px;
+  }
+  .kite-title h1 {
+    font-size: clamp(53px, 13vw, 70px);
+  }
+  .jaipur-map-toggle {
+    top: 17px;
+    right: 13px;
+  }
+  .kite-discovery {
+    top: auto;
+    bottom: 154px;
+  }
+  .kite-impact {
+    bottom: 131px;
+    font-size: 10px;
+    white-space: nowrap;
+  }
+  .kite-hero[data-3d="true"]::before {
+    background: linear-gradient(
+      180deg,
+      #352638b8 0%,
+      transparent 47%,
+      #302139a0 100%
+    );
+  }
+}
+
+.kite-topics {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 11px;
+  margin-top: 12px;
+  color: #ffdfc2;
+  font:
+    10px/1.4 ui-monospace,
+    monospace;
+}
+.kite-topics > span {
+  color: inherit;
+}
+.kite-topics > span + span::before {
+  content: "·";
+  margin-right: 11px;
+  color: #fbb987;
+}
+.kite-title .kite-experience-label {
+  margin-top: 18px;
+  color: #f4dbd0;
+  font:
+    10px/1.4 ui-monospace,
+    monospace;
+  text-shadow: 0 1px 8px #291e31;
+}
+.kite-hero[data-flight="true"] .kite-topics {
+  display: none;
+}
+.kite-title .kite-actions a {
+  font-weight: 750;
+}
+.jaipur-route-map {
+  position: relative;
+  height: 113px;
+  margin-top: 8px;
+  border-radius: 6px;
+  border: 1px solid #f6dbbf26;
+  background:
+    linear-gradient(0deg, #5f415153, transparent 72%),
+    repeating-linear-gradient(0deg, #c7abc318 0px 1px, transparent 1px 11px),
+    repeating-linear-gradient(90deg, #c7abc318 0px 1px, transparent 1px 13px),
+    #251c2e;
+  overflow: hidden;
+}
+.jaipur-route-map::after {
+  content: "";
+  position: absolute;
+  width: 1px;
+  height: 87%;
+  left: 50%;
+  top: 5%;
+  border-inline-start: 1px dashed #f7c99b6e;
+}
+.jaipur-map-lake {
+  position: absolute;
+  left: 56%;
+  width: 42%;
+  height: 19%;
+  top: 35%;
+  background: #4c8b8a7a;
+  border-radius: 48%;
+}
+.jaipur-map-start {
+  position: absolute;
+  left: 55%;
+  top: 87%;
+  width: 5px;
+  height: 5px;
+  transform: rotate(45deg);
+  background: #fff0ca;
+}
+.jaipur-map-pin {
+  position: absolute;
+  z-index: 2;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  width: 13px;
+  height: 13px;
+  display: grid;
+  place-items: center;
+  font:
+    9px ui-monospace,
+    monospace;
+  color: #342539;
+}
+.jaipur-map li i {
+  width: 13px;
+  height: 13px;
+  display: grid;
+  place-items: center;
+  font:
+    9px ui-monospace,
+    monospace;
+  color: #342539;
+}
+@media (max-width: 760px) {
+  .kite-topics {
+    font-size: 9px;
+    gap: 5px 7px;
+  }
+  .kite-topics > span + span::before {
+    margin-right: 7px;
+  }
+  .jaipur-map {
+    max-height: calc(100% - 87px);
+    overflow: auto;
   }
 }

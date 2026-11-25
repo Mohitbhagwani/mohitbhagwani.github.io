@@ -102,7 +102,7 @@ export default function App() {
         </button>
       </header>
       <main>
-        <KiteFlight plain={plain} onOpen={open} />
+        <KiteFlight plain={plain} />
         <TraceAtlas plain={plain} onOpen={open} />
         <Workshop plain={plain} onOpen={open} />
         <Portfolio onOpen={open} />
@@ -139,17 +139,18 @@ export default function App() {
             <>
               <FileText size={40} />
               <h2>The résumé.</h2>
-              <p className="lead">
-                The experience is ready. The download is awaiting a verified
-                file.
-              </p>
               {profile.resume ? (
-                <a className="button dark" href={profile.resume} download>
-                  Download résumé
+                <a
+                  className="button dark"
+                  href={profile.resume}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  View résumé on Google Drive <ArrowUpRight size={16} />
                 </a>
               ) : (
                 <p className="configuration-note">
-                  Résumé download is not configured. The career timeline is
+                  The résumé link is unavailable. The career timeline is
                   available below.
                 </p>
               )}

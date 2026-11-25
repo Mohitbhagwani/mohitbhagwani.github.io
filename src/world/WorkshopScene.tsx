@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useRef } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { Html, OrbitControls, RoundedBox } from "@react-three/drei";
+import { Environment, Html, Lightformer, RoundedBox } from "@react-three/drei";
 import * as THREE from "three";
 import { exhibits, type Exhibit } from "../content/workshop";
+import SkillObject from "./SkillObject";
 
 type XYZ = [number, number, number];
 const backdrop = "#101c29";
@@ -40,25 +41,6 @@ function Solid({
   );
 }
 
-function Tube({
-  at,
-  radius,
-  height,
-  color,
-}: {
-  at: XYZ;
-  radius: number;
-  height: number;
-  color: string;
-}) {
-  return (
-    <mesh position={at} castShadow receiveShadow>
-      <cylinderGeometry args={[radius, radius, height, 32]} />
-      <meshStandardMaterial color={color} roughness={0.34} metalness={0.27} />
-    </mesh>
-  );
-}
-
 function LightRing({
   at,
   radius,
@@ -78,194 +60,6 @@ function LightRing({
       />
     </mesh>
   );
-}
-
-function Sculpture({ item }: { item: Exhibit }) {
-  const c = item.color;
-  switch (item.id) {
-    case "java":
-      return (
-        <>
-          <Tube at={[0, 0.45, 0]} radius={0.83} height={0.15} color="#f9dfbd" />
-          <mesh position={[0, 0.98, 0]} castShadow>
-            <cylinderGeometry args={[0.53, 0.39, 0.91, 32]} />
-            <meshStandardMaterial color={c} roughness={0.27} metalness={0.22} />
-          </mesh>
-          <Tube
-            at={[0, 1.445, 0]}
-            radius={0.46}
-            height={0.025}
-            color="#482c29"
-          />
-          <mesh position={[0.59, 1, 0]} castShadow>
-            <torusGeometry args={[0.27, 0.078, 12, 28]} />
-            <meshStandardMaterial color={c} />
-          </mesh>
-          {[-0.18, 0.17].map((x, i) => (
-            <mesh
-              key={x}
-              position={[x, 1.7 + i * 0.08, 0.03]}
-              rotation={[0, 0, -0.55 + i * 0.2]}
-            >
-              <torusGeometry args={[0.19, 0.022, 8, 24, Math.PI * 1.3]} />
-              <meshStandardMaterial
-                color="#f9dfbd"
-                emissive={c}
-                emissiveIntensity={0.25}
-              />
-            </mesh>
-          ))}
-        </>
-      );
-    case "go":
-      return (
-        <>
-          {[-1, 1].map((s) => (
-            <group
-              key={s}
-              position={[s * 0.29, 0.99, 0]}
-              rotation={[0, 0.31, 0]}
-            >
-              <mesh castShadow>
-                <torusGeometry args={[0.53, 0.135, 16, 40]} />
-                <meshStandardMaterial
-                  color={s === 1 ? c : "#c1eef4"}
-                  roughness={0.27}
-                  metalness={0.45}
-                />
-              </mesh>
-            </group>
-          ))}
-          <Solid
-            at={[0, 0.43, 0]}
-            size={[1.64, 0.12, 0.8]}
-            color="#365e6f"
-            smooth
-          />
-        </>
-      );
-    case "spring":
-      return (
-        <>
-          <Tube at={[0, 0.5, 0]} radius={0.63} height={0.23} color="#618e70" />
-          {[-1, 1].map((s) => (
-            <mesh
-              key={s}
-              position={[s * 0.31, 1.13, 0]}
-              rotation={[0.2, 0, -s * 0.68]}
-              castShadow
-              scale={[0.42, 0.8, 0.22]}
-            >
-              <sphereGeometry args={[1, 20, 14]} />
-              <meshStandardMaterial
-                color={s === 1 ? c : "#619d6a"}
-                roughness={0.52}
-              />
-            </mesh>
-          ))}
-          <Solid
-            at={[0, 1.15, 0.21]}
-            size={[0.055, 1, 0.045]}
-            color="#d7ecc0"
-          />
-        </>
-      );
-    case "kafka":
-      return (
-        <>
-          {[-0.64, 0, 0.64].map((x, i) => (
-            <group key={x}>
-              <Solid
-                at={[x, 0.91 + i * 0.16, 0]}
-                size={[0.47, 1.04 + i * 0.32, 0.75]}
-                color={i === 1 ? c : "#686baf"}
-                smooth
-              />
-              {Array.from({ length: 4 }, (_, row) => (
-                <Solid
-                  key={row}
-                  at={[x, 0.6 + row * 0.205, 0.4]}
-                  size={[0.27, 0.045, 0.035]}
-                  color="#e7dfff"
-                />
-              ))}
-            </group>
-          ))}
-        </>
-      );
-    case "sql":
-    case "redis":
-      return (
-        <>
-          {[0, 1, 2].map((i) => (
-            <group key={i} position={[0, 0.55 + i * 0.34, 0]}>
-              <Tube
-                at={[0, 0, 0]}
-                radius={0.66}
-                height={0.28}
-                color={i === 1 ? "#888fa7" : c}
-              />
-              <LightRing
-                at={[0, 0.14, 0]}
-                radius={0.54}
-                color={i === 1 ? c : "#dce3f2"}
-              />
-            </group>
-          ))}
-        </>
-      );
-    case "docker":
-      return (
-        <>
-          {[
-            [-0.49, 0.63, 0],
-            [0.48, 0.63, 0],
-            [0, 1.12, -0.14],
-          ].map(([x, y, z], i) => (
-            <group key={i} position={[x, y, z]}>
-              <Solid
-                at={[0, 0, 0]}
-                size={[0.9, 0.43, 0.98]}
-                color={i === 2 ? "#b1dbfb" : c}
-                smooth
-              />
-              {[-0.26, -0.09, 0.09, 0.26].map((line) => (
-                <Solid
-                  key={line}
-                  at={[line, 0, 0.5]}
-                  size={[0.037, 0.25, 0.025]}
-                  color="#536b85"
-                />
-              ))}
-            </group>
-          ))}
-        </>
-      );
-    default:
-      return (
-        <>
-          <Tube at={[0, 0.53, 0]} radius={0.65} height={0.16} color="#8d634f" />
-          <mesh position={[0, 1.07, 0]} rotation={[0.3, 0.54, 0.1]} castShadow>
-            <icosahedronGeometry args={[0.55, 0]} />
-            <meshStandardMaterial color={c} metalness={0.43} roughness={0.25} />
-          </mesh>
-          {[-1, 1].map((s) => (
-            <mesh
-              key={s}
-              position={[0, 1.05, 0]}
-              rotation={[0.8, s * 0.76, 0.3]}
-            >
-              <torusGeometry args={[0.73, 0.049, 10, 40]} />
-              <meshStandardMaterial
-                color={c}
-                emissive="#cb8b66"
-                emissiveIntensity={0.3}
-              />
-            </mesh>
-          ))}
-        </>
-      );
-  }
 }
 
 function Pedestal({
@@ -302,7 +96,9 @@ function Pedestal({
         radius={1}
         color={active ? "#f7e2aa" : item.color}
       />
-      <Sculpture item={item} />
+      <group position-y={0.38} scale={0.76}>
+        <SkillObject item={item} />
+      </group>
       <Html center position={[0, 0.27, 1.42]} zIndexRange={[8, 1]}>
         <button
           className="workshop-label"
@@ -517,21 +313,55 @@ function WalkCamera({
   return null;
 }
 
-function OverviewCamera({
-  walking,
-  reset,
-}: {
-  walking: boolean;
-  reset: number;
-}) {
-  const { camera, invalidate } = useThree();
+function Studio({ item, active }: { item: Exhibit; active: boolean }) {
+  const { camera, size, invalidate } = useThree();
+  const turntable = useRef<THREE.Group>(null);
+  const elapsed = useRef(0);
   useEffect(() => {
-    if (walking) return;
-    camera.position.set(13.6, 12.5, 14.8);
-    camera.lookAt(0, 0, -2);
+    const compact = size.width < 650;
+    camera.position.set(
+      compact ? 2.45 : 2.1,
+      compact ? 3.6 : 3.15,
+      compact ? 6.55 : 5.7,
+    );
+    camera.lookAt(0, compact ? 0.69 : 0.71, 0);
     invalidate();
-  }, [camera, invalidate, reset, walking]);
-  return null;
+  }, [camera, size.width, invalidate]);
+  useEffect(() => {
+    if (active) invalidate();
+  }, [active, invalidate]);
+  useFrame((_, dt) => {
+    if (!active || elapsed.current >= 0.75) return;
+    elapsed.current += Math.min(dt, 0.05);
+    const turn = 1 - Math.min(elapsed.current / 0.75, 1);
+    if (turntable.current) {
+      turntable.current.rotation.y = -0.85 * turn ** 3;
+    }
+    if (turn > 0) invalidate();
+  });
+  return (
+    <>
+      <mesh rotation-x={-Math.PI / 2} position-y={-0.051} receiveShadow>
+        <planeGeometry args={[150, 150]} />
+        <meshStandardMaterial color="#d2c9bb" roughness={0.91} />
+      </mesh>
+      <mesh position-y={0.05} castShadow receiveShadow>
+        <cylinderGeometry args={[1.68, 1.76, 0.2, 96]} />
+        <meshStandardMaterial
+          color="#8b8175"
+          metalness={0.15}
+          roughness={0.63}
+        />
+      </mesh>
+      <mesh position-y={0.152} castShadow receiveShadow>
+        <cylinderGeometry args={[1.67, 1.68, 0.042, 96]} />
+        <meshStandardMaterial color="#b9ac99" roughness={0.52} />
+      </mesh>
+      <group ref={turntable} position-y={0.174} rotation-y={-0.85}>
+        <SkillObject item={item} />
+      </group>
+    </>
+  );
 }
 
 function ContextWatch({ onError }: { onError: () => void }) {
@@ -552,7 +382,7 @@ export default function WorkshopScene({
   selected,
   onSelect,
   walking,
-  reset,
+  active,
   input,
   onNearby,
   onError,
@@ -560,65 +390,95 @@ export default function WorkshopScene({
   selected: string;
   onSelect: (item: Exhibit) => void;
   walking: boolean;
-  reset: number;
+  active: boolean;
   input: React.RefObject<Set<string>>;
   onNearby: (item: Exhibit | null) => void;
   onError: () => void;
 }) {
+  const item =
+    exhibits.find((exhibit) => exhibit.id === selected) ?? exhibits[0];
   return (
     <Canvas
       frameloop={walking ? "always" : "demand"}
-      shadows
+      shadows={{ type: THREE.PCFShadowMap }}
       dpr={[1, 1.4]}
-      camera={{ position: [13.6, 12.5, 14.8], fov: 51, near: 0.1, far: 100 }}
+      camera={{
+        position: [13.6, 12.5, 14.8],
+        fov: walking ? 51 : 35,
+        near: 0.1,
+        far: 100,
+      }}
       fallback={<p>3D unavailable. Choose a tool from the list below.</p>}
-      onCreated={({ camera }) => camera.lookAt(0, 0, -2)}
     >
-      <color attach="background" args={[backdrop]} />
-      <fog attach="fog" args={[backdrop, 26, 60]} />
-      <hemisphereLight args={["#dfedff", "#526181", 2.3]} />
+      <color attach="background" args={[walking ? backdrop : "#d2c9bb"]} />
+      <fog
+        attach="fog"
+        args={walking ? [backdrop, 26, 60] : ["#d2c9bb", 10, 34]}
+      />
+      <hemisphereLight
+        args={
+          walking ? ["#dfedff", "#526181", 2.3] : ["#fff8ed", "#827a6f", 1.1]
+        }
+      />
       <directionalLight
-        position={[-8, 14, 10]}
-        color="#ffdec1"
-        intensity={2.4}
+        position={walking ? [-8, 14, 10] : [-3.8, 7, 4.2]}
+        color={walking ? "#ffdec1" : "#fff1da"}
+        intensity={walking ? 2.4 : 2.2}
         castShadow
-        shadow-mapSize={[1024, 1024]}
-        shadow-camera-left={-16}
-        shadow-camera-right={16}
-        shadow-camera-top={17}
-        shadow-camera-bottom={-17}
-        shadow-normalBias={0.023}
+        shadow-mapSize={[1536, 1536]}
+        shadow-camera-left={walking ? -16 : -4.4}
+        shadow-camera-right={walking ? 16 : 4.4}
+        shadow-camera-top={walking ? 17 : 4.4}
+        shadow-camera-bottom={walking ? -17 : -4.4}
+        shadow-normalBias={walking ? 0.023 : 0.009}
+        shadow-radius={4}
       />
       <directionalLight
-        position={[10, 5, -10]}
-        color="#83c9ed"
-        intensity={0.85}
+        position={[5, 4, -5]}
+        color={walking ? "#83c9ed" : "#e6eeff"}
+        intensity={walking ? 0.85 : 0.63}
       />
-      <Hall />
-      {exhibits.map((item) => (
-        <Pedestal
-          key={item.id}
-          item={item}
-          active={item.id === selected}
-          onSelect={() => onSelect(item)}
-        />
-      ))}
-      {walking ? (
-        <WalkCamera input={input} onNearby={onNearby} onInspect={onSelect} />
-      ) : (
-        <OrbitControls
-          makeDefault
-          target={[0, 0, -2]}
-          minDistance={9}
-          maxDistance={38}
-          minPolarAngle={0.4}
-          maxPolarAngle={1.35}
-          enablePan={false}
-          enableZoom={false}
-          enableDamping={false}
-        />
+      {!walking && (
+        <Environment resolution={128}>
+          <color attach="background" args={["#766d61"]} />
+          <Lightformer
+            position={[-3, 4, 3]}
+            rotation={[0.35, 0.45, 0]}
+            scale={[3.7, 2.8, 1]}
+            intensity={3.8}
+            color="#fff0dc"
+          />
+          <Lightformer
+            position={[3.5, 2.6, -2.7]}
+            rotation={[0, -0.86, 0]}
+            scale={[2.2, 4, 1]}
+            intensity={2.0}
+            color="#e8efff"
+          />
+          <Lightformer
+            position={[0, 5, 0]}
+            rotation={[Math.PI / 2, 0, 0]}
+            scale={[3.5, 4.3, 1]}
+            intensity={2.9}
+          />
+        </Environment>
       )}
-      <OverviewCamera walking={walking} reset={reset} />
+      {walking ? (
+        <>
+          <Hall />
+          {exhibits.map((exhibit) => (
+            <Pedestal
+              key={exhibit.id}
+              item={exhibit}
+              active={exhibit.id === selected}
+              onSelect={() => onSelect(exhibit)}
+            />
+          ))}
+          <WalkCamera input={input} onNearby={onNearby} onInspect={onSelect} />
+        </>
+      ) : (
+        <Studio key={item.id} item={item} active={active} />
+      )}
       <ContextWatch onError={onError} />
     </Canvas>
   );
